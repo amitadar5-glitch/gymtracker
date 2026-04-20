@@ -125,6 +125,25 @@ html,body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
 input[type=number]{-moz-appearance:textfield}
+
+/* CYCLE INFO BAR */
+.cycle-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 16px;flex-shrink:0;background:#070707;border-bottom:1px solid var(--border)}
+.cycle-week-label{font-size:10px;font-weight:800;letter-spacing:2px;color:#555}
+.cycle-effort-label{font-size:10px;font-weight:800;letter-spacing:1.5px}
+
+/* SET RIR BADGE */
+.set-num-col{display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:6px}
+.set-rir-badge{font-size:7px;font-weight:900;letter-spacing:0.3px;text-align:center;padding:2px 4px;border-radius:4px;line-height:1.2;white-space:nowrap}
+
+/* MOBILITY SECTION */
+.mobility-section{background:#090909;border:1px solid #181810;border-radius:18px;margin-bottom:14px;overflow:hidden}
+.mobility-header-row{padding:12px 18px 10px;border-bottom:1px solid #111;display:flex;align-items:center;justify-content:space-between}
+.mobility-title{font-family:'Bebas Neue',cursive;font-size:15px;letter-spacing:2px;color:#666}
+.mobility-duration-tag{font-size:10px;color:#444;letter-spacing:2px;font-weight:700;border:1px solid #222;padding:3px 8px;border-radius:8px}
+.mobility-item{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid #0f0f0f}
+.mobility-item:last-child{border-bottom:none}
+.mobility-item-name{color:#666;font-size:13px;font-weight:600;letter-spacing:0.3px}
+.mobility-item-time{color:#3a3a3a;font-size:11px;letter-spacing:1px;font-weight:700}
 </style>
 </head>
 <body>
@@ -195,6 +214,12 @@ input[type=number]{-moz-appearance:textfield}
     </div>
   </div>
 
+  <!-- CYCLE BAR -->
+  <div class="cycle-bar" id="cycle-bar">
+    <span class="cycle-week-label" id="cycle-week-text">WEEK 1 / 8</span>
+    <span class="cycle-effort-label" id="cycle-effort-text">3 REPS IN RESERVE</span>
+  </div>
+
   <!-- REST BANNER -->
   <div class="rest-banner" id="rest-banner">
     <div class="rest-banner-left">
@@ -253,60 +278,125 @@ input[type=number]{-moz-appearance:textfield}
 const KG_TO_LBS = 2.20462;
 const LBS_TO_KG = 0.453592;
 const DEFAULT_REST = 120;
-const WORKOUTS_PER_CYCLE = 4;
-const DELOAD_EVERY = 8; // weeks
+const WORKOUTS_PER_CYCLE = 4;  // A+B+C+D = 1 week
+const TOTAL_CYCLE_WEEKS = 9;   // 8 training + 1 deload
+
+// Week-by-week RIR (Reps In Reserve) targets — index 0 = Week 1, index 8 = Deload
+// rir array: [set1, set2, set3]; 0 = go to failure, 'deload' = special
+const CYCLE_CONFIG = [
+  { weekNum:1, label:'3 REPS IN RESERVE',  short:'3 RIR',    rir:[3,3,3],   color:'#A8FF3E' },
+  { weekNum:2, label:'2 REPS IN RESERVE',  short:'2 RIR',    rir:[2,2,2],   color:'#FFC107' },
+  { weekNum:3, label:'1 REP IN RESERVE',   short:'1 RIR',    rir:[1,1,1],   color:'#FF9800' },
+  { weekNum:4, label:'1ST SET TO FAILURE', short:'1 FAIL',   rir:[0,1,1],   color:'#FF6B35' },
+  { weekNum:5, label:'2 SETS TO FAILURE',  short:'2 FAIL',   rir:[0,0,1],   color:'#FF4444' },
+  { weekNum:6, label:'ALL SETS TO FAILURE',short:'ALL FAIL', rir:[0,0,0],   color:'#FF2D78' },
+  { weekNum:7, label:'ALL SETS TO FAILURE',short:'ALL FAIL', rir:[0,0,0],   color:'#FF2D78' },
+  { weekNum:8, label:'ALL SETS TO FAILURE',short:'ALL FAIL', rir:[0,0,0],   color:'#FF2D78' },
+  { weekNum:9, label:'DELOAD WEEK',        short:'DELOAD',   rir:'deload',  color:'#FFD700' },
+];
 
 // ── Exercise Library ───────────────────────────────────────────────────────────
 const EXERCISE_LIBRARY = [
+  // CHEST
   {name:'Incline Barbell Bench Press',muscle:'Chest'},
   {name:'Flat Barbell Bench Press',muscle:'Chest'},
   {name:'Decline Barbell Bench Press',muscle:'Chest'},
   {name:'Incline DB Bench Press',muscle:'Chest'},
   {name:'Flat DB Bench Press',muscle:'Chest'},
+  {name:'Decline DB Bench Press',muscle:'Chest'},
   {name:'Uni-Lateral Machine Chest Press',muscle:'Chest'},
   {name:'Machine Chest Press',muscle:'Chest'},
   {name:'Incline Smith Machine Bench Press',muscle:'Chest'},
+  {name:'Flat Smith Machine Bench Press',muscle:'Chest'},
   {name:'Low to High Cable Flys (Upper Chest)',muscle:'Chest'},
+  {name:'High to Low Cable Flys (Lower Chest)',muscle:'Chest'},
   {name:'Cable Crossover',muscle:'Chest'},
   {name:'Machine Pec Deck Flys',muscle:'Chest'},
+  {name:'DB Chest Fly',muscle:'Chest'},
+  {name:'Cable Chest Fly',muscle:'Chest'},
+  {name:'DB Pullover',muscle:'Chest'},
+  {name:'Landmine Press',muscle:'Chest'},
   {name:'Push Ups',muscle:'Chest'},
+  {name:'Weighted Dips',muscle:'Chest'},
   {name:'Dips',muscle:'Chest'},
+  {name:'Svend Press',muscle:'Chest'},
+  // BACK
   {name:'Wide Grip Lat Pulldown',muscle:'Back'},
   {name:'Close Grip Lat Pulldown',muscle:'Back'},
+  {name:'Neutral Grip Lat Pulldown',muscle:'Back'},
+  {name:'Straight Arm Lat Pulldown',muscle:'Back'},
   {name:'Seated Cable Row',muscle:'Back'},
+  {name:'Single Arm Cable Row',muscle:'Back'},
   {name:'Chest Supported Row',muscle:'Back'},
   {name:'Barbell Row',muscle:'Back'},
+  {name:'Pendlay Row',muscle:'Back'},
+  {name:'Meadows Row',muscle:'Back'},
   {name:'DB Row',muscle:'Back'},
   {name:'T-Bar Row',muscle:'Back'},
   {name:'Pull Ups',muscle:'Back'},
   {name:'Chin Ups',muscle:'Back'},
+  {name:'Neutral Grip Pull Ups',muscle:'Back'},
   {name:'Back Extension (45 Degrees)',muscle:'Back'},
+  {name:'Hyperextension (Machine)',muscle:'Back'},
   {name:'Deadlift',muscle:'Back'},
+  {name:'Sumo Deadlift',muscle:'Back'},
+  {name:'Trap Bar Deadlift',muscle:'Back'},
+  {name:'Rack Pull',muscle:'Back'},
+  {name:'Good Morning',muscle:'Back'},
+  {name:'Cable Pullover',muscle:'Back'},
+  // SHOULDERS
   {name:'Machine Shoulder Press',muscle:'Shoulders'},
   {name:'DB Shoulder Press',muscle:'Shoulders'},
   {name:'Barbell Overhead Press',muscle:'Shoulders'},
+  {name:'Arnold Press',muscle:'Shoulders'},
+  {name:'Smith Machine Shoulder Press',muscle:'Shoulders'},
   {name:'Cable Lateral Raises',muscle:'Shoulders'},
   {name:'DB Lateral Raises',muscle:'Shoulders'},
   {name:'Chest Supported DB Lateral Raises',muscle:'Shoulders'},
+  {name:'Leaning DB Lateral Raise',muscle:'Shoulders'},
+  {name:'Cable Front Raise',muscle:'Shoulders'},
+  {name:'DB Front Raise',muscle:'Shoulders'},
+  {name:'Plate Front Raise',muscle:'Shoulders'},
   {name:'Standing Cable Rear Delt Fly',muscle:'Shoulders'},
   {name:'DB Rear Delt Fly',muscle:'Shoulders'},
+  {name:'Reverse Pec Deck',muscle:'Shoulders'},
   {name:'Face Pull',muscle:'Shoulders'},
   {name:'Upright Row',muscle:'Shoulders'},
+  {name:'Bradford Press',muscle:'Shoulders'},
+  {name:'Landmine Lateral Raise',muscle:'Shoulders'},
+  {name:'Band Pull-Apart',muscle:'Shoulders'},
+  // BICEPS
   {name:'Cable Biceps Curl',muscle:'Biceps'},
   {name:'Incline DB Curl',muscle:'Biceps'},
   {name:'Barbell Curl',muscle:'Biceps'},
+  {name:'EZ-Bar Curl',muscle:'Biceps'},
   {name:'DB Hammer Curl',muscle:'Biceps'},
+  {name:'Cable Hammer Curl',muscle:'Biceps'},
   {name:'Preacher Curl',muscle:'Biceps'},
+  {name:'EZ-Bar Preacher Curl',muscle:'Biceps'},
   {name:'Single Arm DB Preacher Curl',muscle:'Biceps'},
   {name:'Concentration Curl',muscle:'Biceps'},
-  {name:'Cable Hammer Curl',muscle:'Biceps'},
   {name:'Dual Cable Face Away Curl',muscle:'Biceps'},
+  {name:'Cable Overhead Curl',muscle:'Biceps'},
+  {name:'Machine Bicep Curl',muscle:'Biceps'},
+  {name:'Zottman Curl',muscle:'Biceps'},
+  {name:'Spider Curl',muscle:'Biceps'},
+  {name:'Cable Drag Curl',muscle:'Biceps'},
+  {name:'DB Scott Curl',muscle:'Biceps'},
+  // TRICEPS
   {name:'Cable Pushdown (Triceps)',muscle:'Triceps'},
+  {name:'Cable Overhead Tricep Extension',muscle:'Triceps'},
   {name:'Cross Cable Tricep Kickback',muscle:'Triceps'},
   {name:'Skull Crushers',muscle:'Triceps'},
-  {name:'Overhead Tricep Extension',muscle:'Triceps'},
+  {name:'Overhead Tricep Extension (DB)',muscle:'Triceps'},
+  {name:'Overhead Tricep Extension (Cable)',muscle:'Triceps'},
   {name:'Close Grip Bench Press',muscle:'Triceps'},
   {name:'DB Tricep Kickback',muscle:'Triceps'},
+  {name:'Tricep Dip Machine',muscle:'Triceps'},
+  {name:'JM Press',muscle:'Triceps'},
+  {name:'French Press',muscle:'Triceps'},
+  {name:'Bodyweight Tricep Extension',muscle:'Triceps'},
+  // LEGS
   {name:'Hack Squat',muscle:'Legs'},
   {name:'Leg Extension (Quad)',muscle:'Legs'},
   {name:'Seated Leg (Hamstring) Curl',muscle:'Legs'},
@@ -314,56 +404,133 @@ const EXERCISE_LIBRARY = [
   {name:'Leg Press',muscle:'Legs'},
   {name:'Front Squat',muscle:'Legs'},
   {name:'Back Squat',muscle:'Legs'},
+  {name:'Bulgarian Split Squat',muscle:'Legs'},
   {name:'Romanian Deadlift',muscle:'Legs'},
+  {name:'Stiff-Leg Deadlift',muscle:'Legs'},
   {name:'Walking Lunges',muscle:'Legs'},
+  {name:'Reverse Lunges',muscle:'Legs'},
+  {name:'Step Ups',muscle:'Legs'},
   {name:'Hip Thrust',muscle:'Legs'},
+  {name:'Cable Pull-Through',muscle:'Legs'},
+  {name:'Goblet Squat',muscle:'Legs'},
+  {name:'Sumo Squat',muscle:'Legs'},
+  {name:'Pendulum Squat',muscle:'Legs'},
+  {name:'Belt Squat',muscle:'Legs'},
+  {name:'Nordic Hamstring Curl',muscle:'Legs'},
+  {name:'Glute Ham Raise',muscle:'Legs'},
+  {name:'Machine Hip Abduction',muscle:'Legs'},
+  {name:'Machine Hip Adduction',muscle:'Legs'},
   {name:'Calf Raises',muscle:'Legs'},
   {name:'Seated Calf Raises',muscle:'Legs'},
+  {name:'Donkey Calf Raises',muscle:'Legs'},
+  {name:'Single Leg Calf Raise',muscle:'Legs'},
+  // CORE
+  {name:'Cable Crunch',muscle:'Core'},
+  {name:'Hanging Leg Raise',muscle:'Core'},
+  {name:'Hanging Knee Raise',muscle:'Core'},
+  {name:'Ab Wheel Rollout',muscle:'Core'},
+  {name:'Plank',muscle:'Core'},
+  {name:'Side Plank',muscle:'Core'},
+  {name:'Russian Twist',muscle:'Core'},
+  {name:'Dead Bug',muscle:'Core'},
+  {name:'Dragon Flag',muscle:'Core'},
+  {name:'Pallof Press',muscle:'Core'},
+  {name:'Cable Woodchop',muscle:'Core'},
+  {name:'Decline Sit-Ups',muscle:'Core'},
+  {name:'Weighted Crunch',muscle:'Core'},
+  // FULL BODY
+  {name:'Farmer Carry',muscle:'Full Body'},
+  {name:'Suitcase Carry (Single Arm)',muscle:'Full Body'},
+  {name:'Trap Bar Carry',muscle:'Full Body'},
+  {name:'Overhead Carry',muscle:'Full Body'},
+  {name:'Sled Push',muscle:'Full Body'},
+  {name:'Sled Pull',muscle:'Full Body'},
+  {name:'Battle Ropes',muscle:'Full Body'},
+  {name:'Kettlebell Swing',muscle:'Full Body'},
+  {name:'Power Clean',muscle:'Full Body'},
+  {name:'Clean & Press',muscle:'Full Body'},
 ];
 
-const MUSCLE_GROUPS = ['All','Chest','Back','Shoulders','Biceps','Triceps','Legs'];
+const MUSCLE_GROUPS = ['All','Chest','Back','Shoulders','Biceps','Triceps','Legs','Core','Full Body'];
 
 // ── Workout Definitions ────────────────────────────────────────────────────────
 const WORKOUTS = {
-  A:{label:'A',title:'SHOULDERS & ARMS',color:'#00E5FF',exercises:[
-    {name:'Cable Lateral Raises',sets:3,reps:'10',weight:'10.5'},
-    {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
-    {name:'Chest Supported DB Lateral Raises',sets:3,reps:'8',weight:'10'},
-    {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
-    {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
-    {name:'Incline DB Curl',sets:3,reps:'8',weight:'16'},
-    {name:'Cable Biceps Curl',sets:3,reps:'9',weight:'49'},
-  ]},
-  B:{label:'B',title:'CHEST & BACK',color:'#FF6B35',exercises:[
-    {name:'Incline Barbell Bench Press',sets:3,reps:'7',weight:'80'},
-    {name:'Uni-Lateral Machine Chest Press',sets:2,reps:'8',weight:'50'},
-    {name:'Low to High Cable Flys (Upper Chest)',sets:3,reps:'9',weight:'20'},
-    {name:'Wide Grip Lat Pulldown',sets:3,reps:'7',weight:'70'},
-    {name:'Seated Cable Row',sets:3,reps:'9',weight:'60'},
-    {name:'Cross Cable Tricep Kickback',sets:3,reps:'8',weight:'15'},
-    {name:'Single Arm DB Preacher Curl',sets:3,reps:'8',weight:'14'},
-  ]},
-  C:{label:'C',title:'BACK & SHOULDERS',color:'#A8FF3E',exercises:[
-    {name:'Chest Supported Row',sets:3,reps:'10',weight:'32'},
-    {name:'Close Grip Lat Pulldown',sets:3,reps:'9',weight:'72.5'},
-    {name:'Machine Shoulder Press',sets:3,reps:'10',weight:'34'},
-    {name:'Chest Supported DB Lateral Raises',sets:3,reps:'7',weight:'10'},
-    {name:'Cable Pushdown (Triceps)',sets:3,reps:'8',weight:'57.5'},
-    {name:'Back Extension (45 Degrees)',sets:3,reps:'10',weight:'16'},
-  ]},
-  D:{label:'D',title:'CHEST & LEGS',color:'#FF2D78',exercises:[
-    {name:'Machine Chest Press',sets:3,reps:'9',weight:'57'},
-    {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
-    {name:'Machine Pec Deck Flys',sets:3,reps:'9',weight:'57'},
-    {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
-    {name:'Hack Squat',sets:3,reps:'8',weight:'100'},
-    {name:'Dual Cable Face Away Curl',sets:3,reps:'8',weight:'38'},
-  ]},
+  A:{label:'A',title:'SHOULDERS & ARMS',color:'#00E5FF',
+    exercises:[
+      {name:'Cable Lateral Raises',sets:3,reps:'10',weight:'10.5'},
+      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
+      {name:'Chest Supported DB Lateral Raises',sets:3,reps:'8',weight:'10'},
+      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
+      {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
+      {name:'Incline DB Curl',sets:3,reps:'8',weight:'16'},
+      {name:'Cable Biceps Curl',sets:3,reps:'9',weight:'49'},
+    ],
+    mobility:[
+      {name:'Wall Shoulder Circles',duration:'45 sec'},
+      {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side'},
+      {name:'Wrist Circles & Flexor Stretch',duration:'45 sec'},
+      {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side'},
+      {name:'Neck Side Stretch',duration:'30 sec each side'},
+    ]
+  },
+  B:{label:'B',title:'CHEST & BACK',color:'#FF6B35',
+    exercises:[
+      {name:'Incline Barbell Bench Press',sets:3,reps:'7',weight:'80'},
+      {name:'Uni-Lateral Machine Chest Press',sets:2,reps:'8',weight:'50'},
+      {name:'Low to High Cable Flys (Upper Chest)',sets:3,reps:'9',weight:'20'},
+      {name:'Wide Grip Lat Pulldown',sets:3,reps:'7',weight:'70'},
+      {name:'Seated Cable Row',sets:3,reps:'9',weight:'60'},
+      {name:'Cross Cable Tricep Kickback',sets:3,reps:'8',weight:'15'},
+      {name:'Single Arm DB Preacher Curl',sets:3,reps:'8',weight:'14'},
+    ],
+    mobility:[
+      {name:'Cat-Cow',duration:'60 sec'},
+      {name:'Thread the Needle',duration:'45 sec each side'},
+      {name:'Doorway Pec Stretch',duration:'45 sec each side'},
+      {name:'Thoracic Extension (over bench)',duration:'60 sec'},
+      {name:'Hip Flexor Stretch',duration:'45 sec each side'},
+    ]
+  },
+  C:{label:'C',title:'BACK & SHOULDERS',color:'#A8FF3E',
+    exercises:[
+      {name:'Chest Supported Row',sets:3,reps:'10',weight:'32'},
+      {name:'Close Grip Lat Pulldown',sets:3,reps:'9',weight:'72.5'},
+      {name:'Machine Shoulder Press',sets:3,reps:'10',weight:'34'},
+      {name:'Chest Supported DB Lateral Raises',sets:3,reps:'7',weight:'10'},
+      {name:'Cable Pushdown (Triceps)',sets:3,reps:'8',weight:'57.5'},
+      {name:'Back Extension (45 Degrees)',sets:3,reps:'10',weight:'16'},
+    ],
+    mobility:[
+      {name:"Child's Pose with Lat Stretch",duration:'45 sec each side'},
+      {name:'Prone Y-T-W',duration:'45 sec'},
+      {name:'Foam Roller Thoracic Extension',duration:'60 sec'},
+      {name:'Neck Stretch (side to side)',duration:'30 sec each side'},
+    ]
+  },
+  D:{label:'D',title:'CHEST & LEGS',color:'#FF2D78',
+    exercises:[
+      {name:'Machine Chest Press',sets:3,reps:'9',weight:'57'},
+      {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
+      {name:'Machine Pec Deck Flys',sets:3,reps:'9',weight:'57'},
+      {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
+      {name:'Hack Squat',sets:3,reps:'8',weight:'100'},
+      {name:'Dual Cable Face Away Curl',sets:3,reps:'8',weight:'38'},
+      {name:'Farmer Carry',sets:3,reps:'40m',weight:'32'},
+    ],
+    mobility:[
+      {name:'Hip Circles',duration:'45 sec each direction'},
+      {name:'Lunge with Thoracic Rotation',duration:'45 sec each side'},
+      {name:'Pigeon Pose (Hip Stretch)',duration:'60 sec each side'},
+      {name:'Standing Quad Stretch',duration:'30 sec each side'},
+      {name:'Calf Stretch (wall)',duration:'30 sec each side'},
+    ]
+  },
 };
 
 // ── State ──────────────────────────────────────────────────────────────────────
 let currentWorkout=null, elapsedInterval=null, elapsedSeconds=0;
 let setData=[], currentUnit='kg', swapExIdx=null, libraryFilter='All';
+let currentCycleWeek=0; // 0-7 = training weeks, 8 = deload
 
 // Rest timer state
 let restSeconds=0, restTotal=DEFAULT_REST, restRunning=false, restInterval=null;
@@ -378,44 +545,66 @@ function loadLog(key){ try{ const d=localStorage.getItem('gymlog_'+key); return 
 
 function getWorkoutCount(){ return parseInt(localStorage.getItem('gymlog_workout_count')||'0'); }
 function incrementWorkoutCount(){ localStorage.setItem('gymlog_workout_count', getWorkoutCount()+1); }
-function isDeloadWeek(){ const count=getWorkoutCount(); return count>0 && Math.floor(count/WORKOUTS_PER_CYCLE)%DELOAD_EVERY===DELOAD_EVERY-1; }
 
-// ── Progressive Overload ───────────────────────────────────────────────────────
-// Double progression: push reps to top of range, then add weight
-const REP_RANGES = { default:[8,12], strength:[5,8], endurance:[12,15] };
-
-function getOverloadSuggestion(exName, prevSets, isDeload){
-  if(!prevSets || prevSets.length===0) return null;
-
-  // Find best set from last session
-  const bestSet = prevSets.reduce((best,s)=>{
-    const vol = parseFloat(s.weight)*parseInt(s.reps);
-    const bvol = parseFloat(best.weight)*parseInt(best.reps);
-    return vol>bvol?s:best;
-  }, prevSets[0]);
-
-  const prevWeight = parseFloat(bestSet.weight);
-  const prevReps = parseInt(bestSet.reps);
-  if(isNaN(prevWeight)||isNaN(prevReps)) return null;
-
-  if(isDeload){
-    const deloadWeight = (prevWeight*0.6).toFixed(1);
-    return { type:'deload', text:`🟡 DELOAD: Use ${deloadWeight}kg × ${prevReps} reps (60% intensity)`, color:'#FFD700' };
-  }
-
-  // Double progression: if top of rep range hit, increase weight
-  const topReps = 12;
-  if(prevReps >= topReps){
-    const increment = prevWeight >= 20 ? 2.5 : 1.25;
-    const newWeight = (prevWeight+increment).toFixed(1);
-    return { type:'increase', text:`↑ Try ${newWeight}kg × 8 reps (weight increase!)`, color:'#00E5FF' };
-  } else {
-    const newReps = prevReps+1;
-    return { type:'reps', text:`↑ Try ${prevWeight}kg × ${newReps} reps (+1 rep)`, color:'#A8FF3E' };
-  }
+// ── Cycle System ───────────────────────────────────────────────────────────────
+function getCurrentCycleWeek(){
+  // Every 4 workouts = 1 week; 9 weeks per full cycle (8 training + 1 deload)
+  return Math.floor(getWorkoutCount() / WORKOUTS_PER_CYCLE) % TOTAL_CYCLE_WEEKS;
 }
 
-// ── Audio ──────────────────────────────────────────────────────────────────────
+function getRIRForSet(weekIdx, setIdx){
+  if(weekIdx >= 8) return 'deload';
+  const arr = CYCLE_CONFIG[weekIdx].rir;
+  return setIdx < arr.length ? arr[setIdx] : arr[arr.length-1];
+}
+
+function getRIRLabel(rir){
+  if(rir === 'deload') return 'DELOAD';
+  if(rir === 0) return 'FAIL';
+  return rir+'RIR';
+}
+
+function getRIRColor(rir){
+  if(rir === 'deload') return '#FFD700';
+  if(rir === 0) return '#FF2D78';
+  if(rir === 1) return '#FF6B35';
+  if(rir === 2) return '#FFC107';
+  return '#A8FF3E'; // 3 RIR
+}
+
+// ── Progressive Overload (RIR-based) ──────────────────────────────────────────
+// First set is heaviest. Weights stay consistent across a cycle; RIR drives intensity.
+// Weight reduces by 10% if prev first set < 6 reps. Deload = 50%.
+function getExerciseSuggestion(prevSets, weekIdx){
+  const cfg = CYCLE_CONFIG[weekIdx] || CYCLE_CONFIG[0];
+
+  if(!prevSets || prevSets.length === 0){
+    return { text:'First session — set your starting weight', color:'#444', adjustKg:0, isNew:true };
+  }
+
+  const firstSet = prevSets[0]; // first (heaviest) set from last session
+  const prevReps = parseInt(firstSet.reps);
+
+  if(weekIdx >= 8){
+    return { text:'🟡 DELOAD — 50% of working weight, focus on form', color:'#FFD700', adjustKg:0, factor:0.5 };
+  }
+
+  if(!isNaN(prevReps) && prevReps < 6){
+    return { text:'⬇ REDUCE WEIGHT — Last session first set was under 6 reps', color:'#FF6B35', adjustKg:0, factor:0.9 };
+  }
+
+  return { text:`Target: ${cfg.label}`, color:cfg.color, adjustKg:0, factor:1 };
+}
+
+function getSuggestedWeightKg(prevSets, weekIdx, defaultWeightKg){
+  const s = getExerciseSuggestion(prevSets, weekIdx);
+  if(s.isNew || !prevSets || !prevSets[0]) return parseFloat(defaultWeightKg);
+  const base = parseFloat(prevSets[0].weight);
+  const factor = s.factor !== undefined ? s.factor : 1;
+  return parseFloat((base * factor).toFixed(1));
+}
+
+// ── Audio & Notifications ──────────────────────────────────────────────────────
 let audioCtx=null;
 function initAudio(){ if(!audioCtx) try{ audioCtx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
 
@@ -423,20 +612,40 @@ function playDoneSound(){
   initAudio();
   if(!audioCtx) return;
   try{
-    // Three ascending beeps
-    [0, 0.2, 0.4].forEach((delay,i)=>{
+    // 4 ascending beeps — louder, triangle wave for more presence
+    [0, 0.18, 0.36, 0.56].forEach((delay,i)=>{
       const osc=audioCtx.createOscillator();
       const gain=audioCtx.createGain();
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.frequency.value = 440 + i*220;
-      osc.type='sine';
-      gain.gain.setValueAtTime(0,audioCtx.currentTime+delay);
-      gain.gain.linearRampToValueAtTime(0.4,audioCtx.currentTime+delay+0.05);
-      gain.gain.linearRampToValueAtTime(0,audioCtx.currentTime+delay+0.25);
+      // Add a subtle compressor so it punches through
+      const comp=audioCtx.createDynamicsCompressor();
+      osc.connect(gain); gain.connect(comp); comp.connect(audioCtx.destination);
+      osc.frequency.value = 523 + i*262; // C5 → E5 → G5 → C6 (major chord)
+      osc.type='triangle';
+      gain.gain.setValueAtTime(0, audioCtx.currentTime+delay);
+      gain.gain.linearRampToValueAtTime(1.0, audioCtx.currentTime+delay+0.04); // max volume
+      gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+delay+0.45);
       osc.start(audioCtx.currentTime+delay);
-      osc.stop(audioCtx.currentTime+delay+0.3);
+      osc.stop(audioCtx.currentTime+delay+0.5);
     });
   }catch(e){}
+}
+
+function requestNotificationPermission(){
+  if('Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+}
+
+function fireRestNotification(){
+  if('Notification' in window && Notification.permission==='granted'){
+    try{
+      new Notification('⏱ Rest Over — GymLog', {
+        body: 'Time to hit your next set! 💪',
+        requireInteraction: false,
+        silent: false
+      });
+    }catch(e){}
+  }
 }
 
 // ── Rest Banner ────────────────────────────────────────────────────────────────
@@ -476,6 +685,7 @@ function updateRestBanner(){
     clearInterval(restInterval);
     restRunning=false;
     playDoneSound();
+    fireRestNotification(); // fires even when navigated away
     if(navigator.vibrate) navigator.vibrate([300,200,300,200,300]);
     document.getElementById('rest-banner').classList.remove('active');
     localStorage.removeItem('gymlog_rest_end');
@@ -527,43 +737,37 @@ function convertWeight(val,toUnit){
 // ── Start Workout ──────────────────────────────────────────────────────────────
 function startWorkout(key){
   initAudio();
+  requestNotificationPermission();
   currentWorkout=key;
   currentUnit='lbs';
+  currentCycleWeek=getCurrentCycleWeek();
   const w=WORKOUTS[key];
-  const deload=isDeloadWeek();
   const prevLog=loadLog(key);
+  const isDeload=currentCycleWeek>=8;
 
   setData=w.exercises.map((ex,i)=>{
     const prev=prevLog?prevLog[i]:null;
-    const overload=getOverloadSuggestion(ex.name, prev?prev.sets:null, deload);
+    const prevSets=prev?prev.sets:null;
+    const suggestion=getExerciseSuggestion(prevSets, currentCycleWeek);
 
-    // Pre-fill with overload suggestion if available (weights stored in kg, convert to lbs)
-    let fillWeightKg=ex.weight, fillReps=ex.reps;
-    if(overload && prev && prev.sets && prev.sets[0]){
-      if(overload.type==='increase'){
-        const inc=parseFloat(ex.weight)>=20?2.5:1.25;
-        fillWeightKg=(parseFloat(prev.sets[0].weight)+inc).toFixed(1);
-        fillReps='8';
-      } else if(overload.type==='reps'){
-        fillWeightKg=prev.sets[0].weight;
-        fillReps=String(parseInt(prev.sets[0].reps)+1);
-      } else if(overload.type==='deload'){
-        fillWeightKg=(parseFloat(prev.sets[0].weight)*0.6).toFixed(1);
-        fillReps=prev.sets[0].reps;
-      }
-    }
-    // Convert kg weight to lbs for display
-    const fillWeight=(parseFloat(fillWeightKg)*KG_TO_LBS).toFixed(1);
+    // Weight: apply factor to prev first-set weight (stored in kg), fallback to default
+    const fillWeightKg=getSuggestedWeightKg(prevSets, currentCycleWeek, ex.weight);
+    // Reps: use prev first set reps if available, else workout default
+    const fillReps=prevSets&&prevSets[0]?prevSets[0].reps:ex.reps;
+    // Convert to lbs for display
+    const fillWeight=(fillWeightKg*KG_TO_LBS).toFixed(1);
 
     return {
       name:ex.name,
-      overload,
-      prevSets:prev?prev.sets:null,
+      overload:suggestion,
+      prevSets,
       sets:Array.from({length:ex.sets},()=>({weight:fillWeight,reps:fillReps,done:false}))
     };
   });
 
   const color=w.color;
+  const cfg=CYCLE_CONFIG[currentCycleWeek];
+
   document.getElementById('header-title').innerHTML=`<span style="color:${color}">${key}</span> — ${w.title}`;
   document.getElementById('timer-btn').style.color=color;
   document.getElementById('timer-btn').style.borderColor=color+'55';
@@ -575,7 +779,13 @@ function startWorkout(key){
   document.getElementById('kg-text').style.color='#444';
   document.getElementById('lbs-text').style.color=color;
 
-  // Style footer buttons with workout color
+  // Cycle bar
+  document.getElementById('cycle-week-text').textContent=isDeload?'DELOAD WEEK':`WEEK ${cfg.weekNum} / 8`;
+  document.getElementById('cycle-week-text').style.color=cfg.color;
+  document.getElementById('cycle-effort-text').textContent=cfg.label;
+  document.getElementById('cycle-effort-text').style.color=cfg.color;
+
+  // Footer buttons
   const startBtn=document.getElementById('start-workout-btn');
   const endBtn=document.getElementById('end-workout-btn');
   startBtn.style.background=color;
@@ -591,7 +801,7 @@ function startWorkout(key){
   elapsedSeconds=0;
   document.getElementById('elapsed-display').textContent='00:00';
 
-  renderExercises(deload);
+  renderExercises(isDeload);
   updateStats();
   showScreen('workout');
   checkResumeRest();
@@ -606,7 +816,7 @@ function renderExercises(deload){
   if(deload){
     const notice=document.createElement('div');
     notice.className='deload-notice';
-    notice.innerHTML=`<span style="font-size:20px">🟡</span><div class="deload-notice-text">DELOAD WEEK — Reduce weights to ~60% of normal. Focus on form and recovery.</div>`;
+    notice.innerHTML=`<span style="font-size:20px">🟡</span><div class="deload-notice-text">DELOAD WEEK — Weights at 50% of working weight. Focus on form and recovery.</div>`;
     list.appendChild(notice);
   }
 
@@ -625,11 +835,20 @@ function renderExercises(deload){
 
     ex.sets.forEach((set,si)=>{
       const prev=ex.prevSets&&ex.prevSets[si]?ex.prevSets[si]:null;
+      // Previous stats always shown in lbs (stored in kg → convert)
       const prevWeightDisp=prev?`${currentUnit==='lbs'?convertWeight(prev.weight,'lbs'):prev.weight}${currentUnit}`:'—';
       const prevRepsDisp=prev?`${prev.reps}r`:'—';
 
+      // Per-set RIR badge
+      const rir=getRIRForSet(currentCycleWeek,si);
+      const rirLabel=getRIRLabel(rir);
+      const rirColor=getRIRColor(rir);
+
       setsHTML+=`<div class="set-row" id="row-${exIdx}-${si}" style="${set.done?'background:'+color+'0F':''}">
-        <div class="set-num" id="num-${exIdx}-${si}" style="color:${set.done?color:'#333'}">${si+1}</div>
+        <div class="set-num-col">
+          <div class="set-num" id="num-${exIdx}-${si}" style="color:${set.done?color:'#333'}">${si+1}</div>
+          <div class="set-rir-badge" id="rir-${exIdx}-${si}" style="color:${set.done?'#000':rirColor};background:${set.done?rirColor:rirColor+'22'}">${rirLabel}</div>
+        </div>
         <div class="set-input-wrap">
           <input class="set-input" type="number" inputmode="decimal" value="${set.weight}" id="w-${exIdx}-${si}"
             style="border-color:${set.done?color+'44':'#1e1e1e'}"
@@ -657,6 +876,26 @@ function renderExercises(deload){
 
     list.appendChild(card);
   });
+
+  // Mobility cool-down section
+  const w=WORKOUTS[currentWorkout];
+  if(w.mobility && w.mobility.length>0){
+    const mobCard=document.createElement('div');
+    mobCard.className='mobility-section';
+    mobCard.innerHTML=`
+      <div class="mobility-header-row">
+        <div class="mobility-title">MOBILITY · COOL DOWN</div>
+        <div class="mobility-duration-tag">5–7 MIN</div>
+      </div>
+      ${w.mobility.map(m=>`
+        <div class="mobility-item">
+          <div class="mobility-item-name">${m.name}</div>
+          <div class="mobility-item-time">${m.duration}</div>
+        </div>
+      `).join('')}
+    `;
+    list.appendChild(mobCard);
+  }
 }
 
 // ── Set Actions ────────────────────────────────────────────────────────────────
@@ -675,8 +914,13 @@ function toggleSet(exIdx,si){
   const ri=document.getElementById(`r-${exIdx}-${si}`);
   const chk=document.getElementById(`chk-${exIdx}-${si}`);
 
+  const rirBadge=document.getElementById(`rir-${exIdx}-${si}`);
+  const rir=getRIRForSet(currentCycleWeek,si);
+  const rirColor=getRIRColor(rir);
+
   row.style.background=done?color+'0F':'';
   num.style.color=done?color:'#333';
+  if(rirBadge){ rirBadge.style.color=done?'#000':rirColor; rirBadge.style.background=done?rirColor:rirColor+'22'; }
   wi.style.borderColor=done?color+'44':'#1e1e1e';
   ri.style.borderColor=done?color+'44':'#1e1e1e';
   chk.style.background=done?color:'#111';
