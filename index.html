@@ -144,6 +144,11 @@ input[type=number]{-moz-appearance:textfield}
 .mobility-item:last-child{border-bottom:none}
 .mobility-item-name{color:#666;font-size:13px;font-weight:600;letter-spacing:0.3px}
 .mobility-item-time{color:#3a3a3a;font-size:11px;letter-spacing:1px;font-weight:700}
+.mobility-item-top{display:flex;align-items:center;justify-content:space-between;width:100%}
+.mobility-expand-btn{font-size:11px;color:#333;font-weight:700;letter-spacing:1px;flex-shrink:0;margin-left:10px}
+.mobility-cue{display:none;padding:10px 0 4px;border-top:1px solid #111;margin-top:8px}
+.mobility-cue-text{font-size:12px;color:#555;line-height:1.6;letter-spacing:0.2px}
+.mobility-yt-btn{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:1px;color:#FF0000;border:1px solid #FF000044;background:#FF000011;padding:5px 12px;border-radius:8px;text-decoration:none}
 </style>
 </head>
 <body>
@@ -416,6 +421,9 @@ const EXERCISE_LIBRARY = [
   {name:'Sumo Squat',muscle:'Legs'},
   {name:'Pendulum Squat',muscle:'Legs'},
   {name:'Belt Squat',muscle:'Legs'},
+  {name:'Box Jump',muscle:'Legs'},
+  {name:'Broad Jump',muscle:'Legs'},
+  {name:'Jump Squat',muscle:'Legs'},
   {name:'Nordic Hamstring Curl',muscle:'Legs'},
   {name:'Glute Ham Raise',muscle:'Legs'},
   {name:'Machine Hip Abduction',muscle:'Legs'},
@@ -459,18 +467,30 @@ const WORKOUTS = {
     exercises:[
       {name:'Cable Lateral Raises',sets:3,reps:'10',weight:'10.5'},
       {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
-      {name:'Chest Supported DB Lateral Raises',sets:3,reps:'8',weight:'10'},
+      // Removed 3rd lateral raise (Chest Supported DB Laterals) — too much same-pattern volume.
+      // Replaced with Cable Woodchop for rotational power and anti-rotation core work.
+      {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
       {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
       {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
       {name:'Incline DB Curl',sets:3,reps:'8',weight:'16'},
       {name:'Cable Biceps Curl',sets:3,reps:'9',weight:'49'},
     ],
     mobility:[
-      {name:'Wall Shoulder Circles',duration:'45 sec'},
-      {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side'},
-      {name:'Wrist Circles & Flexor Stretch',duration:'45 sec'},
-      {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side'},
-      {name:'Neck Side Stretch',duration:'30 sec each side'},
+      {name:'Wall Shoulder Circles',duration:'45 sec',
+        cue:"Stand arm's length from wall. Place palm flat on wall, make large slow circles forward × 10, then backward × 10. Keep shoulder blade controlled throughout.",
+        yt:'wall+shoulder+circles+mobility'},
+      {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',
+        cue:'Pull one arm straight across your chest using the opposite hand pressing at the elbow (not wrist). Keep the shoulder down. Feel the stretch in the rear delt and upper back.',
+        yt:'cross+body+shoulder+stretch'},
+      {name:'Wrist Circles & Flexor Stretch',duration:'45 sec',
+        cue:'Extend arm palm-up, use other hand to gently pull fingers back toward you. Hold 20 sec. Then make 10 slow wrist circles each direction.',
+        yt:'wrist+mobility+flexor+stretch'},
+      {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side',
+        cue:'Sit upright on a bench, hands lightly behind head. Rotate ONLY your upper back — left, then right. Hips stay square. Lead with your elbow and eyes.',
+        yt:'seated+thoracic+rotation+mobility'},
+      {name:'Neck Side Stretch',duration:'30 sec each side',
+        cue:'Tilt one ear toward your shoulder. Place same-side hand gently on top of head for light pressure — never pull. Keep the opposite shoulder actively pressed down.',
+        yt:'neck+side+stretch+mobility'},
     ]
   },
   B:{label:'B',title:'CHEST & BACK',color:'#FF6B35',
@@ -484,11 +504,21 @@ const WORKOUTS = {
       {name:'Single Arm DB Preacher Curl',sets:3,reps:'8',weight:'14'},
     ],
     mobility:[
-      {name:'Cat-Cow',duration:'60 sec'},
-      {name:'Thread the Needle',duration:'45 sec each side'},
-      {name:'Doorway Pec Stretch',duration:'45 sec each side'},
-      {name:'Thoracic Extension (over bench)',duration:'60 sec'},
-      {name:'Hip Flexor Stretch',duration:'45 sec each side'},
+      {name:'Cat-Cow',duration:'60 sec',
+        cue:'On all fours, wrists under shoulders, knees under hips. Inhale — drop belly, lift head and tailbone (cow). Exhale — round spine to ceiling, tuck chin and pelvis (cat). Move slowly, let the breath lead.',
+        yt:'cat+cow+stretch+mobility'},
+      {name:'Thread the Needle',duration:'45 sec each side',
+        cue:'On all fours. Slide one arm under your body along the floor, rotating until shoulder and ear touch the ground. Hold. Feel the thoracic rotation. Opposite arm can reach overhead for depth.',
+        yt:'thread+the+needle+thoracic+mobility'},
+      {name:'Doorway Pec Stretch',duration:'45 sec each side',
+        cue:'Stand in a doorway. Place forearm on frame with elbow at 90°. Step one foot forward and gently rotate body away until you feel the stretch across your chest. Keep ribs down.',
+        yt:'doorway+pec+chest+stretch'},
+      {name:'Thoracic Extension (over bench)',duration:'60 sec',
+        cue:'Sit in front of a flat bench. Lace fingers behind your head, lean back over the edge so your mid-back contacts the bench. Let your head drop. Move the contact point up the spine between reps.',
+        yt:'thoracic+extension+bench+mobility'},
+      {name:'Hip Flexor Stretch',duration:'45 sec each side',
+        cue:'Half-kneeling position. Push hips forward without letting lower back arch. Squeeze the glute of the back leg to deepen the stretch. Torso stays tall.',
+        yt:'hip+flexor+stretch+kneeling'},
     ]
   },
   C:{label:'C',title:'BACK & SHOULDERS',color:'#A8FF3E',
@@ -501,28 +531,50 @@ const WORKOUTS = {
       {name:'Back Extension (45 Degrees)',sets:3,reps:'10',weight:'16'},
     ],
     mobility:[
-      {name:"Child's Pose with Lat Stretch",duration:'45 sec each side'},
-      {name:'Prone Y-T-W',duration:'45 sec'},
-      {name:'Foam Roller Thoracic Extension',duration:'60 sec'},
-      {name:'Neck Stretch (side to side)',duration:'30 sec each side'},
+      {name:"Child's Pose with Lat Stretch",duration:'45 sec each side',
+        cue:"From child's pose, walk both hands to one side. Lower your chest toward the floor. Feel the stretch deep in your lat. To deepen: reach the top arm further. Switch sides.",
+        yt:"child's+pose+lat+stretch+mobility"},
+      {name:'Prone Y-T-W',duration:'45 sec',
+        cue:'Lie face down, forehead on ground. Y: raise arms overhead in a Y, squeeze shoulder blades. T: arms out to sides. W: elbows bent, hands back by ears. Lift slightly each time. Pause at the top.',
+        yt:'prone+YTW+shoulder+mobility+exercise'},
+      {name:'Foam Roller Thoracic Extension',duration:'60 sec',
+        cue:'Place roller perpendicular to your spine at mid-back. Support your head with hands behind it. Lean back over the roller, let the segment open. Shift up to the next segment. Never roll the lower back.',
+        yt:'foam+roller+thoracic+extension+upper+back'},
+      {name:'Neck Stretch (side to side)',duration:'30 sec each side',
+        cue:'Sit or stand tall. Slowly tilt ear to shoulder and hold 20 sec. Then do 8 slow chin-to-chest and back to neutral reps. Keep the movement smooth — no bouncing.',
+        yt:'neck+stretches+mobility+routine'},
     ]
   },
   D:{label:'D',title:'CHEST & LEGS',color:'#FF2D78',
     exercises:[
       {name:'Machine Chest Press',sets:3,reps:'9',weight:'57'},
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
-      {name:'Machine Pec Deck Flys',sets:3,reps:'9',weight:'57'},
-      {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
+      // Removed Machine Pec Deck (3rd chest exercise — too much chest volume when B is already chest-focused).
+      // Removed Dual Cable Face Away Curl (bicep isolation out of place on leg/chest day).
+      // Added Box Jump for lower-body power, Hip Thrust for hip hinge, Suitcase Carry for anti-lateral-flexion.
+      {name:'Box Jump',sets:3,reps:'5',weight:'0'},
       {name:'Hack Squat',sets:3,reps:'8',weight:'100'},
-      {name:'Dual Cable Face Away Curl',sets:3,reps:'8',weight:'38'},
+      {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
+      {name:'Hip Thrust',sets:3,reps:'10',weight:'80'},
       {name:'Farmer Carry',sets:3,reps:'40m',weight:'32'},
+      {name:'Suitcase Carry (Single Arm)',sets:3,reps:'30m',weight:'24'},
     ],
     mobility:[
-      {name:'Hip Circles',duration:'45 sec each direction'},
-      {name:'Lunge with Thoracic Rotation',duration:'45 sec each side'},
-      {name:'Pigeon Pose (Hip Stretch)',duration:'60 sec each side'},
-      {name:'Standing Quad Stretch',duration:'30 sec each side'},
-      {name:'Calf Stretch (wall)',duration:'30 sec each side'},
+      {name:'Hip Circles',duration:'45 sec each direction',
+        cue:'Stand on one leg, pull opposite knee up. Draw large, controlled circles with the raised knee — forward 10 reps, then backward 10. Switch sides. Keep standing leg soft at the knee.',
+        yt:'hip+circles+mobility+warmup'},
+      {name:'Lunge with Thoracic Rotation',duration:'45 sec each side',
+        cue:'Step into a lunge. Place the same-side hand as the front foot on the floor for support. Rotate your opposite arm to the ceiling, eyes following your hand. Keep back knee off ground.',
+        yt:'lunge+with+thoracic+rotation+mobility'},
+      {name:'Pigeon Pose (Hip Stretch)',duration:'60 sec each side',
+        cue:'From push-up position, slide one shin across toward the opposite wrist. Lower your hips toward the floor. For depth, lower your chest over the shin. Keep hips square.',
+        yt:'pigeon+pose+hip+stretch'},
+      {name:'Standing Quad Stretch',duration:'30 sec each side',
+        cue:'Stand tall. Pull one ankle toward your glute. Keep both knees together. Push hips slightly forward to stretch the hip flexor too. Hold a wall if needed for balance.',
+        yt:'standing+quad+stretch'},
+      {name:'Calf Stretch (wall)',duration:'30 sec each side',
+        cue:'Face a wall, place toes up the wall with heel on floor. Lean into it — straight leg targets the gastroc, slightly bent knee targets the soleus. Both are important for squat depth.',
+        yt:'wall+calf+stretch+gastroc+soleus'},
     ]
   },
 };
@@ -820,6 +872,35 @@ function renderExercises(deload){
     list.appendChild(notice);
   }
 
+  // Mobility WARM-UP section — shown first
+  const w=WORKOUTS[currentWorkout];
+  if(w.mobility && w.mobility.length>0){
+    const mobCard=document.createElement('div');
+    mobCard.className='mobility-section';
+    mobCard.innerHTML=`
+      <div class="mobility-header-row">
+        <div class="mobility-title">MOBILITY · WARM UP</div>
+        <div class="mobility-duration-tag">5–7 MIN</div>
+      </div>
+      ${w.mobility.map((m,mi)=>`
+        <div class="mobility-item" id="mob-${mi}" onclick="toggleMobilityCue(${mi})" style="cursor:pointer;flex-direction:column;align-items:flex-start">
+          <div class="mobility-item-top">
+            <div class="mobility-item-name">${m.name}</div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              <div class="mobility-item-time">${m.duration}</div>
+              <div class="mobility-expand-btn" id="mob-arrow-${mi}">▼</div>
+            </div>
+          </div>
+          <div class="mobility-cue" id="mob-cue-${mi}">
+            <div class="mobility-cue-text">${m.cue||''}</div>
+            ${m.yt?`<a class="mobility-yt-btn" href="https://www.youtube.com/results?search_query=${m.yt}" target="_blank" onclick="event.stopPropagation()">▶ Watch on YouTube</a>`:''}
+          </div>
+        </div>
+      `).join('')}
+    `;
+    list.appendChild(mobCard);
+  }
+
   setData.forEach((ex,exIdx)=>{
     const card=document.createElement('div');
     card.className='ex-card';
@@ -876,26 +957,16 @@ function renderExercises(deload){
 
     list.appendChild(card);
   });
+}
 
-  // Mobility cool-down section
-  const w=WORKOUTS[currentWorkout];
-  if(w.mobility && w.mobility.length>0){
-    const mobCard=document.createElement('div');
-    mobCard.className='mobility-section';
-    mobCard.innerHTML=`
-      <div class="mobility-header-row">
-        <div class="mobility-title">MOBILITY · COOL DOWN</div>
-        <div class="mobility-duration-tag">5–7 MIN</div>
-      </div>
-      ${w.mobility.map(m=>`
-        <div class="mobility-item">
-          <div class="mobility-item-name">${m.name}</div>
-          <div class="mobility-item-time">${m.duration}</div>
-        </div>
-      `).join('')}
-    `;
-    list.appendChild(mobCard);
-  }
+// ── Mobility Tutorial Toggle ───────────────────────────────────────────────────
+function toggleMobilityCue(idx){
+  const cue=document.getElementById(`mob-cue-${idx}`);
+  const arrow=document.getElementById(`mob-arrow-${idx}`);
+  if(!cue) return;
+  const open=cue.style.display==='block';
+  cue.style.display=open?'none':'block';
+  if(arrow) arrow.textContent=open?'▼':'▲';
 }
 
 // ── Set Actions ────────────────────────────────────────────────────────────────
@@ -1083,7 +1154,7 @@ function selectExercise(name){
   setData[swapExIdx].sets=setData[swapExIdx].sets.map(s=>({...s,done:false}));
   setData[swapExIdx].overload=null;
   closeLibrary();
-  renderExercises(isDeloadWeek());
+  renderExercises(currentCycleWeek>=8);
   updateStats();
 }
 </script>
