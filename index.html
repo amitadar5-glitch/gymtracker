@@ -149,6 +149,18 @@ input[type=number]{-moz-appearance:textfield}
 .mobility-cue{display:none;padding:10px 0 4px;border-top:1px solid #111;margin-top:8px}
 .mobility-cue-text{font-size:12px;color:#555;line-height:1.6;letter-spacing:0.2px}
 .mobility-yt-btn{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:1px;color:#FF0000;border:1px solid #FF000044;background:#FF000011;padding:5px 12px;border-radius:8px;text-decoration:none}
+
+/* WEEKLY TRACKER */
+.weekly-section{width:100%;max-width:420px;margin-top:18px;padding:16px 18px;background:var(--card);border-radius:18px;border:1px solid var(--border)}
+.weekly-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.weekly-label{font-size:9px;font-weight:800;letter-spacing:3px;color:#444}
+.weekly-dots{display:flex;gap:8px}
+.weekly-dot{font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:1px;padding:5px 11px;border-radius:9px;border:1px solid}
+.next-up-row{display:flex;align-items:center;justify-content:space-between}
+.next-up-badge{font-family:'Bebas Neue',cursive;font-size:14px;letter-spacing:1.5px;padding:7px 16px;border-radius:10px;border:1px solid}
+
+/* EXERCISE LAST SESSION HEADER */
+.ex-last-session{font-size:11px;color:#484848;letter-spacing:0.5px;font-weight:600;margin-top:3px}
 </style>
 </head>
 <body>
@@ -160,31 +172,32 @@ input[type=number]{-moz-appearance:textfield}
     <div class="app-sub">CHOOSE YOUR WORKOUT</div>
   </div>
   <div class="workout-grid">
-    <div class="workout-card" style="border-color:#00E5FF22" onclick="startWorkout('A')">
+    <div class="workout-card" id="card-A" style="border-color:#00E5FF22" onclick="startWorkout('A')">
       <div class="workout-card-letter" style="color:#00E5FF">A</div>
       <div class="workout-card-title">SHOULDERS & ARMS</div>
-      <div class="workout-card-sub">7 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-A">6 EXERCISES</div>
       <div class="workout-card-bar" style="background:#00E5FF"></div>
     </div>
-    <div class="workout-card" style="border-color:#FF6B3522" onclick="startWorkout('B')">
+    <div class="workout-card" id="card-B" style="border-color:#FF6B3522" onclick="startWorkout('B')">
       <div class="workout-card-letter" style="color:#FF6B35">B</div>
       <div class="workout-card-title">CHEST & BACK</div>
-      <div class="workout-card-sub">7 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-B">6 EXERCISES</div>
       <div class="workout-card-bar" style="background:#FF6B35"></div>
     </div>
-    <div class="workout-card" style="border-color:#A8FF3E22" onclick="startWorkout('C')">
+    <div class="workout-card" id="card-C" style="border-color:#A8FF3E22" onclick="startWorkout('C')">
       <div class="workout-card-letter" style="color:#A8FF3E">C</div>
       <div class="workout-card-title">BACK & SHOULDERS</div>
-      <div class="workout-card-sub">6 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-C">6 EXERCISES</div>
       <div class="workout-card-bar" style="background:#A8FF3E"></div>
     </div>
-    <div class="workout-card" style="border-color:#FF2D7822" onclick="startWorkout('D')">
+    <div class="workout-card" id="card-D" style="border-color:#FF2D7822" onclick="startWorkout('D')">
       <div class="workout-card-letter" style="color:#FF2D78">D</div>
       <div class="workout-card-title">CHEST & LEGS</div>
-      <div class="workout-card-sub">6 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-D">7 EXERCISES</div>
       <div class="workout-card-bar" style="background:#FF2D78"></div>
     </div>
   </div>
+  <div class="weekly-section" id="weekly-section"></div>
 </div>
 
 <!-- WORKOUT -->
@@ -358,6 +371,8 @@ const EXERCISE_LIBRARY = [
   {name:'Cable Lateral Raises',muscle:'Shoulders'},
   {name:'DB Lateral Raises',muscle:'Shoulders'},
   {name:'Chest Supported DB Lateral Raises',muscle:'Shoulders'},
+  {name:'Incline DB Lateral Raises',muscle:'Shoulders'},
+  {name:'Incline DB Rear Delt Raise',muscle:'Shoulders'},
   {name:'Leaning DB Lateral Raise',muscle:'Shoulders'},
   {name:'Cable Front Raise',muscle:'Shoulders'},
   {name:'DB Front Raise',muscle:'Shoulders'},
@@ -424,6 +439,8 @@ const EXERCISE_LIBRARY = [
   {name:'Box Jump',muscle:'Legs'},
   {name:'Broad Jump',muscle:'Legs'},
   {name:'Jump Squat',muscle:'Legs'},
+  {name:'Bodyweight Lunge',muscle:'Legs'},
+  {name:'Petersen Step Down',muscle:'Legs'},
   {name:'Nordic Hamstring Curl',muscle:'Legs'},
   {name:'Glute Ham Raise',muscle:'Legs'},
   {name:'Machine Hip Abduction',muscle:'Legs'},
@@ -469,6 +486,7 @@ const WORKOUTS = {
       {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
       // Removed 3rd lateral raise (Chest Supported DB Laterals) — too much same-pattern volume.
       // Replaced with Cable Woodchop for rotational power and anti-rotation core work.
+      {name:'Incline DB Lateral Raises',sets:3,reps:'10',weight:'8'},
       {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
       {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
       {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
@@ -550,9 +568,9 @@ const WORKOUTS = {
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
       {name:'Machine Pec Deck Flys',sets:3,reps:'9',weight:'57'},
       // Dual Cable Face Away Curl removed — bicep injury.
-      // Added Box Jump, Hip Thrust, Suitcase Carry.
-      {name:'Box Jump',sets:3,reps:'5',weight:'0'},
-      {name:'Hack Squat',sets:3,reps:'8',weight:'100'},
+      // Replaced Box Jump + Hack Squat with Bodyweight Lunge + Petersen Step Down.
+      {name:'Bodyweight Lunge',sets:3,reps:'12',weight:'0'},
+      {name:'Petersen Step Down',sets:3,reps:'10',weight:'0'},
       {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
       {name:'Farmer Carry',sets:3,reps:'40m',weight:'32'},
     ],
@@ -594,6 +612,92 @@ function loadLog(key){ try{ const d=localStorage.getItem('gymlog_'+key); return 
 
 function getWorkoutCount(){ return parseInt(localStorage.getItem('gymlog_workout_count')||'0'); }
 function incrementWorkoutCount(){ localStorage.setItem('gymlog_workout_count', getWorkoutCount()+1); }
+
+// ── Workout History (for weekly tracker) ──────────────────────────────────────
+function loadHistory(){ try{ const d=localStorage.getItem('gymlog_history'); return d?JSON.parse(d):[]; }catch(e){return [];} }
+function saveHistory(h){ try{ localStorage.setItem('gymlog_history',JSON.stringify(h)); }catch(e){} }
+function recordWorkoutToHistory(key){
+  const h=loadHistory();
+  h.push({key, date:new Date().toISOString()});
+  if(h.length>28) h.splice(0,h.length-28); // keep ~7 weeks
+  saveHistory(h);
+}
+function getThisWeekDone(){
+  const cutoff=new Date(Date.now()-7*24*60*60*1000).toISOString();
+  return loadHistory().filter(h=>h.date>=cutoff).map(h=>h.key);
+}
+function getNextWorkoutKey(){
+  return ['A','B','C','D'][getWorkoutCount()%4];
+}
+
+// ── In-Progress Save/Restore (prevents data loss on tab kill) ─────────────────
+function saveWorkoutProgress(){
+  if(!currentWorkout) return;
+  try{
+    localStorage.setItem('gymlog_progress', JSON.stringify({
+      key: currentWorkout,
+      setData: JSON.parse(JSON.stringify(setData)),
+      elapsed: elapsedSeconds,
+      unit: currentUnit,
+      cycleWeek: currentCycleWeek,
+      timerStarted: document.getElementById('end-workout-btn').style.display!=='none'
+    }));
+  }catch(e){}
+}
+function clearWorkoutProgress(){ localStorage.removeItem('gymlog_progress'); }
+
+function restoreWorkoutProgress(){
+  const raw=localStorage.getItem('gymlog_progress');
+  if(!raw) return;
+  try{
+    const p=JSON.parse(raw);
+    if(!p||!p.key||!WORKOUTS[p.key]) return;
+    currentWorkout=p.key;
+    setData=p.setData;
+    elapsedSeconds=p.elapsed||0;
+    currentUnit=p.unit||'lbs';
+    currentCycleWeek=p.cycleWeek||0;
+    const w=WORKOUTS[currentWorkout];
+    const color=w.color;
+    const cfg=CYCLE_CONFIG[currentCycleWeek]||CYCLE_CONFIG[0];
+    const isDeload=currentCycleWeek>=8;
+    // Restore all UI
+    document.getElementById('header-title').innerHTML=`<span style="color:${color}">${currentWorkout}</span> — ${w.title}`;
+    document.getElementById('timer-btn').style.color=color;
+    document.getElementById('timer-btn').style.borderColor=color+'55';
+    document.getElementById('timer-btn').style.backgroundColor=color+'18';
+    document.getElementById('sets-display').style.color=color;
+    document.getElementById('progress-fill').style.backgroundColor=color;
+    document.getElementById('unit-toggle').style.borderColor=color+'55';
+    document.getElementById('library-close-btn').style.color=color;
+    document.getElementById('kg-text').style.color='#444';
+    document.getElementById('lbs-text').style.color=color;
+    document.getElementById('cycle-week-text').textContent=isDeload?'DELOAD WEEK':`WEEK ${cfg.weekNum} / 8`;
+    document.getElementById('cycle-week-text').style.color=cfg.color;
+    document.getElementById('cycle-effort-text').textContent=cfg.label;
+    document.getElementById('cycle-effort-text').style.color=cfg.color;
+    const startBtn=document.getElementById('start-workout-btn');
+    const endBtn=document.getElementById('end-workout-btn');
+    startBtn.style.background=color; startBtn.style.color='#000';
+    endBtn.style.background='#1a1a1a'; endBtn.style.color='#fff'; endBtn.style.border='1px solid #333';
+    if(p.timerStarted){
+      startBtn.style.display='none'; endBtn.style.display='block';
+      clearInterval(elapsedInterval);
+      document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
+      elapsedInterval=setInterval(()=>{
+        elapsedSeconds++;
+        document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
+      },1000);
+    } else {
+      startBtn.style.display='block'; endBtn.style.display='none';
+      document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
+    }
+    renderExercises(isDeload);
+    updateStats();
+    showScreen('workout');
+    checkResumeRest();
+  }catch(e){ clearWorkoutProgress(); }
+}
 
 // ── Cycle System ───────────────────────────────────────────────────────────────
 function getCurrentCycleWeek(){
@@ -787,6 +891,7 @@ function convertWeight(val,toUnit){
 function startWorkout(key){
   initAudio();
   requestNotificationPermission();
+  clearWorkoutProgress(); // fresh start clears any previous in-progress save
   currentWorkout=key;
   currentUnit='lbs';
   currentCycleWeek=getCurrentCycleWeek();
@@ -903,6 +1008,11 @@ function renderExercises(deload){
     card.className='ex-card';
 
     const overloadHTML=ex.overload?`<div class="ex-overload" style="color:${ex.overload.color}">${ex.overload.text}</div>`:'';
+    // Last session summary for exercise header
+    const firstPrev=ex.prevSets&&ex.prevSets[0];
+    const lastSessionHTML=firstPrev
+      ?`<div class="ex-last-session">LAST: ${currentUnit==='lbs'?convertWeight(firstPrev.weight,'lbs'):firstPrev.weight}${currentUnit} × ${firstPrev.reps} reps</div>`
+      :'';
 
     let setsHTML=`<div class="set-cols">
       <div class="col-hdr">SET</div>
@@ -951,6 +1061,7 @@ function renderExercises(deload){
     card.innerHTML=`<div class="ex-header">
       <div class="ex-header-left">
         <div class="ex-name">${ex.name.toUpperCase()}</div>
+        ${lastSessionHTML}
         ${overloadHTML}
       </div>
       <button class="swap-btn" onclick="openLibrary(${exIdx})" style="color:${color};border-color:${color}55;background:${color}15">⇄ SWAP</button>
@@ -1002,6 +1113,7 @@ function toggleSet(exIdx,si){
   if(done) startRestTimer(DEFAULT_REST);
 
   updateStats();
+  saveWorkoutProgress(); // persist state in case browser kills the tab
 }
 
 function updateStats(){
@@ -1023,6 +1135,8 @@ function saveWorkoutLog(){
   }));
   saveLog(currentWorkout, log);
   incrementWorkoutCount();
+  recordWorkoutToHistory(currentWorkout);
+  clearWorkoutProgress();
 }
 
 // ── Workout Start / End ────────────────────────────────────────────────────────
@@ -1041,6 +1155,7 @@ function endWorkout(){
   saveWorkoutLog();
   clearInterval(elapsedInterval);
   skipRest();
+  renderWeeklyTracker();
   showScreen('home');
 }
 
@@ -1065,6 +1180,8 @@ function toggleUnit(){
 function goHome(){
   clearInterval(elapsedInterval);
   skipRest();
+  clearWorkoutProgress(); // abandon in-progress workout
+  renderWeeklyTracker();
   showScreen('home');
 }
 
@@ -1112,6 +1229,42 @@ function resetTimer(){
 }
 function updateTimerDisplay(){ document.getElementById('timer-display').textContent=fmt(timerSeconds); }
 
+// ── Weekly Tracker ─────────────────────────────────────────────────────────────
+function renderWeeklyTracker(){
+  const el=document.getElementById('weekly-section');
+  if(!el) return;
+  const nextKey=getNextWorkoutKey();
+  const done=getThisWeekDone();
+  const keys=['A','B','C','D'];
+
+  const dotsHTML=keys.map(k=>{
+    const isDone=done.includes(k);
+    const c=WORKOUTS[k].color;
+    return `<div class="weekly-dot" style="${isDone
+      ?'background:'+c+';border-color:'+c+';color:#000'
+      :'border-color:'+c+'44;color:'+c+'55'}">${isDone?'✓ ':''}${k}</div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div class="weekly-row">
+      <div class="weekly-label">THIS WEEK</div>
+      <div class="weekly-dots">${dotsHTML}</div>
+    </div>
+    <div class="next-up-row">
+      <div class="weekly-label">NEXT UP</div>
+      <div class="next-up-badge" style="color:${WORKOUTS[nextKey].color};border-color:${WORKOUTS[nextKey].color}44;background:${WORKOUTS[nextKey].color}11">
+        ${nextKey} — ${WORKOUTS[nextKey].title}
+      </div>
+    </div>`;
+
+  // Highlight next-up card
+  keys.forEach(k=>{
+    const card=document.getElementById('card-'+k);
+    if(!card) return;
+    card.style.borderColor = k===nextKey ? WORKOUTS[k].color+'66' : WORKOUTS[k].color+'22';
+  });
+}
+
 // ── Library ────────────────────────────────────────────────────────────────────
 function openLibrary(exIdx){
   swapExIdx=exIdx; libraryFilter='All';
@@ -1158,6 +1311,12 @@ function selectExercise(name){
   renderExercises(currentCycleWeek>=8);
   updateStats();
 }
+
+// ── Page Load Bootstrap ────────────────────────────────────────────────────────
+// Render weekly tracker on home screen, then check if a workout was in-progress
+// when the tab was killed (restores full state if found).
+renderWeeklyTracker();
+restoreWorkoutProgress();
 </script>
 </body>
 </html>
