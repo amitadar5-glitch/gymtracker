@@ -172,29 +172,29 @@ input[type=number]{-moz-appearance:textfield}
     <div class="app-sub">CHOOSE YOUR WORKOUT</div>
   </div>
   <div class="workout-grid">
-    <div class="workout-card" id="card-A" style="border-color:#00E5FF22" onclick="startWorkout('A')">
-      <div class="workout-card-letter" style="color:#00E5FF">A</div>
-      <div class="workout-card-title">SHOULDERS & ARMS</div>
-      <div class="workout-card-sub" id="sub-A">6 EXERCISES</div>
-      <div class="workout-card-bar" style="background:#00E5FF"></div>
-    </div>
-    <div class="workout-card" id="card-B" style="border-color:#FF6B3522" onclick="startWorkout('B')">
-      <div class="workout-card-letter" style="color:#FF6B35">B</div>
+    <div class="workout-card" id="card-A" style="border-color:#FF6B3522" onclick="startWorkout('A')">
+      <div class="workout-card-letter" style="color:#FF6B35">A</div>
       <div class="workout-card-title">CHEST & BACK</div>
-      <div class="workout-card-sub" id="sub-B">6 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-A">7 EXERCISES</div>
       <div class="workout-card-bar" style="background:#FF6B35"></div>
     </div>
-    <div class="workout-card" id="card-C" style="border-color:#A8FF3E22" onclick="startWorkout('C')">
-      <div class="workout-card-letter" style="color:#A8FF3E">C</div>
+    <div class="workout-card" id="card-B" style="border-color:#A8FF3E22" onclick="startWorkout('B')">
+      <div class="workout-card-letter" style="color:#A8FF3E">B</div>
       <div class="workout-card-title">BACK & SHOULDERS</div>
-      <div class="workout-card-sub" id="sub-C">6 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-B">6 EXERCISES</div>
       <div class="workout-card-bar" style="background:#A8FF3E"></div>
     </div>
-    <div class="workout-card" id="card-D" style="border-color:#FF2D7822" onclick="startWorkout('D')">
-      <div class="workout-card-letter" style="color:#FF2D78">D</div>
+    <div class="workout-card" id="card-C" style="border-color:#FF2D7822" onclick="startWorkout('C')">
+      <div class="workout-card-letter" style="color:#FF2D78">C</div>
       <div class="workout-card-title">CHEST & LEGS</div>
-      <div class="workout-card-sub" id="sub-D">7 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-C">7 EXERCISES</div>
       <div class="workout-card-bar" style="background:#FF2D78"></div>
+    </div>
+    <div class="workout-card" id="card-D" style="border-color:#00E5FF22" onclick="startWorkout('D')">
+      <div class="workout-card-letter" style="color:#00E5FF">D</div>
+      <div class="workout-card-title">SHOULDERS & ARMS</div>
+      <div class="workout-card-sub" id="sub-D">7 EXERCISES</div>
+      <div class="workout-card-bar" style="background:#00E5FF"></div>
     </div>
   </div>
   <div class="weekly-section" id="weekly-section"></div>
@@ -481,37 +481,7 @@ const MUSCLE_GROUPS = ['All','Chest','Back','Shoulders','Biceps','Triceps','Legs
 
 // ── Workout Definitions ────────────────────────────────────────────────────────
 const WORKOUTS = {
-  A:{label:'A',title:'SHOULDERS & ARMS',color:'#00E5FF',
-    exercises:[
-      {name:'Cable Lateral Raises',sets:3,reps:'10',weight:'10.5'},
-      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
-      // Removed 3rd lateral raise (Chest Supported DB Laterals) — too much same-pattern volume.
-      // Replaced with Cable Woodchop for rotational power and anti-rotation core work.
-      {name:'Incline DB Lateral Raises',sets:3,reps:'10',weight:'8'},
-      {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
-      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
-      {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
-      {name:'DB Bicep Curl',sets:3,reps:'10',weight:'14'},
-    ],
-    mobility:[
-      {name:'Wall Shoulder Circles',duration:'45 sec',
-        cue:"Stand arm's length from wall. Place palm flat on wall, make large slow circles forward × 10, then backward × 10. Keep shoulder blade controlled throughout.",
-        yt:'wall+shoulder+circles+mobility'},
-      {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',
-        cue:'Pull one arm straight across your chest using the opposite hand pressing at the elbow (not wrist). Keep the shoulder down. Feel the stretch in the rear delt and upper back.',
-        yt:'cross+body+shoulder+stretch'},
-      {name:'Wrist Circles & Flexor Stretch',duration:'45 sec',
-        cue:'Extend arm palm-up, use other hand to gently pull fingers back toward you. Hold 20 sec. Then make 10 slow wrist circles each direction.',
-        yt:'wrist+mobility+flexor+stretch'},
-      {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side',
-        cue:'Sit upright on a bench, hands lightly behind head. Rotate ONLY your upper back — left, then right. Hips stay square. Lead with your elbow and eyes.',
-        yt:'seated+thoracic+rotation+mobility'},
-      {name:'Neck Side Stretch',duration:'30 sec each side',
-        cue:'Tilt one ear toward your shoulder. Place same-side hand gently on top of head for light pressure — never pull. Keep the opposite shoulder actively pressed down.',
-        yt:'neck+side+stretch+mobility'},
-    ]
-  },
-  B:{label:'B',title:'CHEST & BACK',color:'#FF6B35',
+  A:{label:'A',title:'CHEST & BACK',color:'#FF6B35',
     exercises:[
       {name:'Incline Barbell Bench Press',sets:3,reps:'7',weight:'80'},
       {name:'Uni-Lateral Machine Chest Press',sets:2,reps:'8',weight:'50'},
@@ -539,7 +509,7 @@ const WORKOUTS = {
         yt:'hip+flexor+stretch+kneeling'},
     ]
   },
-  C:{label:'C',title:'BACK & SHOULDERS',color:'#A8FF3E',
+  B:{label:'B',title:'BACK & SHOULDERS',color:'#A8FF3E',
     exercises:[
       {name:'Chest Supported Row',sets:3,reps:'10',weight:'32'},
       {name:'Close Grip Lat Pulldown',sets:3,reps:'9',weight:'72.5'},
@@ -563,7 +533,7 @@ const WORKOUTS = {
         yt:'neck+stretches+mobility+routine'},
     ]
   },
-  D:{label:'D',title:'CHEST & LEGS',color:'#FF2D78',
+  C:{label:'C',title:'CHEST & LEGS',color:'#FF2D78',
     exercises:[
       {name:'Machine Chest Press',sets:3,reps:'9',weight:'57'},
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
@@ -593,12 +563,41 @@ const WORKOUTS = {
         yt:'wall+calf+stretch+gastroc+soleus'},
     ]
   },
+  D:{label:'D',title:'SHOULDERS & ARMS',color:'#00E5FF',
+    exercises:[
+      {name:'Cable Lateral Raises',sets:3,reps:'10',weight:'10.5'},
+      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
+      {name:'Incline DB Lateral Raises',sets:3,reps:'10',weight:'8'},
+      {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
+      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
+      {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
+      {name:'DB Bicep Curl',sets:3,reps:'10',weight:'14'},
+    ],
+    mobility:[
+      {name:'Wall Shoulder Circles',duration:'45 sec',
+        cue:"Stand arm's length from wall. Place palm flat on wall, make large slow circles forward × 10, then backward × 10. Keep shoulder blade controlled throughout.",
+        yt:'wall+shoulder+circles+mobility'},
+      {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',
+        cue:'Pull one arm straight across your chest using the opposite hand pressing at the elbow (not wrist). Keep the shoulder down. Feel the stretch in the rear delt and upper back.',
+        yt:'cross+body+shoulder+stretch'},
+      {name:'Wrist Circles & Flexor Stretch',duration:'45 sec',
+        cue:'Extend arm palm-up, use other hand to gently pull fingers back toward you. Hold 20 sec. Then make 10 slow wrist circles each direction.',
+        yt:'wrist+mobility+flexor+stretch'},
+      {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side',
+        cue:'Sit upright on a bench, hands lightly behind head. Rotate ONLY your upper back — left, then right. Hips stay square. Lead with your elbow and eyes.',
+        yt:'seated+thoracic+rotation+mobility'},
+      {name:'Neck Side Stretch',duration:'30 sec each side',
+        cue:'Tilt one ear toward your shoulder. Place same-side hand gently on top of head for light pressure — never pull. Keep the opposite shoulder actively pressed down.',
+        yt:'neck+side+stretch+mobility'},
+    ]
+  },
 };
 
 // ── State ──────────────────────────────────────────────────────────────────────
 let currentWorkout=null, elapsedInterval=null, elapsedSeconds=0;
 let setData=[], currentUnit='kg', swapExIdx=null, libraryFilter='All';
 let currentCycleWeek=0; // 0-7 = training weeks, 8 = deload
+let workoutStarted=false; // true only after START WORKOUT is tapped
 
 // Rest timer state
 let restSeconds=0, restTotal=DEFAULT_REST, restRunning=false, restInterval=null;
@@ -641,7 +640,7 @@ function saveWorkoutProgress(){
       elapsed: elapsedSeconds,
       unit: currentUnit,
       cycleWeek: currentCycleWeek,
-      timerStarted: document.getElementById('end-workout-btn').style.display!=='none'
+      timerStarted: workoutStarted
     }));
   }catch(e){}
 }
@@ -681,7 +680,8 @@ function restoreWorkoutProgress(){
     const endBtn=document.getElementById('end-workout-btn');
     startBtn.style.background=color; startBtn.style.color='#000';
     endBtn.style.background='#1a1a1a'; endBtn.style.color='#fff'; endBtn.style.border='1px solid #333';
-    if(p.timerStarted){
+    workoutStarted = p.timerStarted || false;
+    if(workoutStarted){
       startBtn.style.display='none'; endBtn.style.display='block';
       clearInterval(elapsedInterval);
       document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
@@ -892,7 +892,24 @@ function convertWeight(val,toUnit){
 function startWorkout(key){
   initAudio();
   requestNotificationPermission();
-  clearWorkoutProgress(); // fresh start clears any previous in-progress save
+
+  // If a started session is saved, resume or warn before discarding
+  const savedRaw=localStorage.getItem('gymlog_progress');
+  if(savedRaw){
+    try{
+      const saved=JSON.parse(savedRaw);
+      if(saved && saved.key && saved.timerStarted){
+        if(saved.key===key){
+          restoreWorkoutProgress();
+          return;
+        }
+        if(!confirm(`You have an unfinished ${saved.key} workout. Start ${key} and lose that data?`)) return;
+      }
+    }catch(e){}
+  }
+
+  clearWorkoutProgress();
+  workoutStarted=false;
   currentWorkout=key;
   currentUnit='lbs';
   currentCycleWeek=getCurrentCycleWeek();
@@ -1088,6 +1105,7 @@ function updateSet(exIdx,si,field,value){
 }
 
 function toggleSet(exIdx,si){
+  if(!workoutStarted) return;
   setData[exIdx].sets[si].done=!setData[exIdx].sets[si].done;
   const done=setData[exIdx].sets[si].done;
   const color=WORKOUTS[currentWorkout].color;
@@ -1142,6 +1160,7 @@ function saveWorkoutLog(){
 
 // ── Workout Start / End ────────────────────────────────────────────────────────
 function beginWorkout(){
+  workoutStarted=true;
   clearInterval(elapsedInterval);
   elapsedSeconds=0;
   elapsedInterval=setInterval(()=>{
@@ -1150,10 +1169,12 @@ function beginWorkout(){
   },1000);
   document.getElementById('start-workout-btn').style.display='none';
   document.getElementById('end-workout-btn').style.display='block';
+  saveWorkoutProgress();
 }
 
 function endWorkout(){
   saveWorkoutLog();
+  workoutStarted=false;
   clearInterval(elapsedInterval);
   skipRest();
   renderWeeklyTracker();
@@ -1181,7 +1202,11 @@ function toggleUnit(){
 function goHome(){
   clearInterval(elapsedInterval);
   skipRest();
-  clearWorkoutProgress(); // abandon in-progress workout
+  if(workoutStarted){
+    saveWorkoutProgress(); // keep session alive — resume via tapping the card
+  } else {
+    clearWorkoutProgress();
+  }
   renderWeeklyTracker();
   showScreen('home');
 }
