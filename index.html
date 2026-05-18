@@ -633,6 +633,19 @@ function getNextWorkoutKey(){
 // ── In-Progress Save/Restore (prevents data loss on tab kill) ─────────────────
 function saveWorkoutProgress(){
   if(!currentWorkout) return;
+  // Capture any currently-focused input values before saving
+  document.querySelectorAll('.set-input').forEach(inp=>{
+    if(inp.id && inp.value!==undefined){
+      const parts=inp.id.split('-');
+      if(parts.length===3){
+        const ei=parseInt(parts[1]), si=parseInt(parts[2]);
+        if(setData[ei]&&setData[ei].sets[si]){
+          if(inp.id.startsWith('w-')) setData[ei].sets[si].weight=inp.value;
+          else if(inp.id.startsWith('r-')) setData[ei].sets[si].reps=inp.value;
+        }
+      }
+    }
+  });
   try{
     localStorage.setItem('gymlog_progress', JSON.stringify({
       key: currentWorkout,
@@ -640,7 +653,8 @@ function saveWorkoutProgress(){
       elapsed: elapsedSeconds,
       unit: currentUnit,
       cycleWeek: currentCycleWeek,
-      timerStarted: workoutStarted
+      timerStarted: workoutStarted,
+      savedAt: Date.now()
     }));
   }catch(e){}
 }
@@ -688,6 +702,7 @@ function restoreWorkoutProgress(){
       elapsedInterval=setInterval(()=>{
         elapsedSeconds++;
         document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
+        saveWorkoutProgress();
       },1000);
     } else {
       startBtn.style.display='block'; endBtn.style.display='none';
@@ -697,7 +712,9 @@ function restoreWorkoutProgress(){
     updateStats();
     showScreen('workout');
     checkResumeRest();
-  }catch(e){ clearWorkoutProgress(); }
+  }catch(e){
+    // Do NOT clear progress data on restore errors — leave it intact so user can retry
+  }
 }
 
 // ── Cycle System ───────────────────────────────────────────────────────────────
@@ -878,7 +895,17 @@ function checkResumeRest(){
   }
 }
 
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkResumeRest(); });
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    // Page going to background — flush current state immediately
+    if(currentWorkout && workoutStarted) saveWorkoutProgress();
+  } else {
+    checkResumeRest();
+  }
+});
+// Also save on page exit/navigation — pagehide covers bfcache, beforeunload covers regular navs
+window.addEventListener('pagehide',()=>{ if(currentWorkout && workoutStarted) saveWorkoutProgress(); });
+window.addEventListener('beforeunload',()=>{ if(currentWorkout && workoutStarted) saveWorkoutProgress(); });
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
@@ -893,17 +920,20 @@ function startWorkout(key){
   initAudio();
   requestNotificationPermission();
 
-  // If a started session is saved, resume or warn before discarding
+  // If any session is saved, resume or warn before discarding
   const savedRaw=localStorage.getItem('gymlog_progress');
   if(savedRaw){
     try{
       const saved=JSON.parse(savedRaw);
-      if(saved && saved.key && saved.timerStarted){
+      if(saved && saved.key){
         if(saved.key===key){
+          // Always restore same-key session — even if START WORKOUT wasn't tapped yet
           restoreWorkoutProgress();
           return;
         }
-        if(!confirm(`You have an unfinished ${saved.key} workout. Start ${key} and lose that data?`)) return;
+        if(saved.timerStarted){
+          if(!confirm(`You have an unfinished ${saved.key} workout. Start ${key} and lose that data?`)) return;
+        }
       }
     }catch(e){}
   }
@@ -1064,12 +1094,14 @@ function renderExercises(deload){
         <div class="set-input-wrap">
           <input class="set-input" type="number" inputmode="decimal" value="${set.weight}" id="w-${exIdx}-${si}"
             style="border-color:${set.done?color+'44':'#1e1e1e'}"
-            onchange="updateSet(${exIdx},${si},'weight',this.value)">
+            oninput="updateSet(${exIdx},${si},'weight',this.value);if(workoutStarted)saveWorkoutProgress()"
+            onchange="updateSet(${exIdx},${si},'weight',this.value);if(workoutStarted)saveWorkoutProgress()">
         </div>
         <div class="set-input-wrap">
           <input class="set-input" type="number" inputmode="numeric" value="${set.reps}" id="r-${exIdx}-${si}"
             style="border-color:${set.done?color+'44':'#1e1e1e'}"
-            onchange="updateSet(${exIdx},${si},'reps',this.value)">
+            oninput="updateSet(${exIdx},${si},'reps',this.value);if(workoutStarted)saveWorkoutProgress()"
+            onchange="updateSet(${exIdx},${si},'reps',this.value);if(workoutStarted)saveWorkoutProgress()">
         </div>
         <button class="check-btn" id="chk-${exIdx}-${si}" onclick="toggleSet(${exIdx},${si})"
           style="${set.done?'background:'+color+';border-color:'+color+';color:#000':''}">✓</button>
@@ -1166,6 +1198,8 @@ function beginWorkout(){
   elapsedInterval=setInterval(()=>{
     elapsedSeconds++;
     document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
+    // Save every 30 seconds so tab-kill never loses more than 30s of state
+    if(elapsedSeconds%30===0) saveWorkoutProgress();
   },1000);
   document.getElementById('start-workout-btn').style.display='none';
   document.getElementById('end-workout-btn').style.display='block';
