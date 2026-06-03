@@ -184,6 +184,12 @@ input[type=number]{-moz-appearance:textfield}
       <div class="workout-card-sub" id="sub-B">6 EXERCISES</div>
       <div class="workout-card-bar" style="background:#A8FF3E"></div>
     </div>
+    <div class="workout-card" id="card-N" style="grid-column:1/-1;border-color:#FFC10722" onclick="startWorkout('N')">
+      <div class="workout-card-letter" style="color:#FFC107">N</div>
+      <div class="workout-card-title">NORWEGIAN 4×4</div>
+      <div class="workout-card-sub" id="sub-N">INTERVALS · 4 × 4 MIN</div>
+      <div class="workout-card-bar" style="background:#FFC107"></div>
+    </div>
     <div class="workout-card" id="card-C" style="border-color:#FF2D7822" onclick="startWorkout('C')">
       <div class="workout-card-letter" style="color:#FF2D78">C</div>
       <div class="workout-card-title">CHEST & LEGS</div>
@@ -298,6 +304,8 @@ const LBS_TO_KG = 0.453592;
 const DEFAULT_REST = 120;
 const WORKOUTS_PER_CYCLE = 4;  // A+B+C+D = 1 week
 const TOTAL_CYCLE_WEEKS = 9;   // 8 training + 1 deload
+const SEQUENCE = ['A','B','N','C','D'];       // full weekly rotation
+const STRENGTH_KEYS = new Set(['A','B','C','D']); // count toward progressive overload cycle
 
 // Week-by-week RIR (Reps In Reserve) targets — index 0 = Week 1, index 8 = Deload
 // rir array: [set1, set2, set3]; 0 = go to failure, 'deload' = special
@@ -591,6 +599,12 @@ const WORKOUTS = {
         yt:'neck+side+stretch+mobility'},
     ]
   },
+  N:{label:'N',title:'NORWEGIAN 4×4',color:'#FFC107',type:'interval',
+    exercises:[
+      {name:'4×4 RUNNING INTERVALS',sets:4,speed:'12.0',incline:'1.0'},
+    ],
+    mobility:[]
+  },
 };
 
 // ── State ──────────────────────────────────────────────────────────────────────
@@ -627,7 +641,12 @@ function getThisWeekDone(){
   return loadHistory().filter(h=>h.date>=cutoff).map(h=>h.key);
 }
 function getNextWorkoutKey(){
-  return ['A','B','C','D'][getWorkoutCount()%4];
+  const h=loadHistory();
+  for(let i=h.length-1;i>=0;i--){
+    const idx=SEQUENCE.indexOf(h[i].key);
+    if(idx!==-1) return SEQUENCE[(idx+1)%SEQUENCE.length];
+  }
+  return 'A';
 }
 
 // ── In-Progress Save/Restore (prevents data loss on tab kill) ─────────────────
@@ -686,10 +705,15 @@ function restoreWorkoutProgress(){
     document.getElementById('library-close-btn').style.color=color;
     document.getElementById('kg-text').style.color='#444';
     document.getElementById('lbs-text').style.color=color;
-    document.getElementById('cycle-week-text').textContent=isDeload?'DELOAD WEEK':`WEEK ${cfg.weekNum} / 8`;
-    document.getElementById('cycle-week-text').style.color=cfg.color;
-    document.getElementById('cycle-effort-text').textContent=cfg.label;
-    document.getElementById('cycle-effort-text').style.color=cfg.color;
+    const isIntervalRestore=w.type==='interval';
+    document.getElementById('cycle-bar').style.display=isIntervalRestore?'none':'';
+    document.getElementById('unit-toggle').style.display=isIntervalRestore?'none':'';
+    if(!isIntervalRestore){
+      document.getElementById('cycle-week-text').textContent=isDeload?'DELOAD WEEK':`WEEK ${cfg.weekNum} / 8`;
+      document.getElementById('cycle-week-text').style.color=cfg.color;
+      document.getElementById('cycle-effort-text').textContent=cfg.label;
+      document.getElementById('cycle-effort-text').style.color=cfg.color;
+    }
     const startBtn=document.getElementById('start-workout-btn');
     const endBtn=document.getElementById('end-workout-btn');
     startBtn.style.background=color; startBtn.style.color='#000';
@@ -946,26 +970,40 @@ function startWorkout(key){
   const w=WORKOUTS[key];
   const prevLog=loadLog(key);
   const isDeload=currentCycleWeek>=8;
+  const isInterval=w.type==='interval';
 
-  setData=w.exercises.map((ex,i)=>{
-    const prev=prevLog?prevLog[i]:null;
-    const prevSets=prev?prev.sets:null;
-    const suggestion=getExerciseSuggestion(prevSets, currentCycleWeek);
-
-    // Weight: apply factor to prev first-set weight (stored in kg), fallback to default
-    const fillWeightKg=getSuggestedWeightKg(prevSets, currentCycleWeek, ex.weight);
-    // Reps: use prev first set reps if available, else workout default
-    const fillReps=prevSets&&prevSets[0]?prevSets[0].reps:ex.reps;
-    // Convert to lbs for display
-    const fillWeight=(fillWeightKg*KG_TO_LBS).toFixed(1);
-
-    return {
-      name:ex.name,
-      overload:suggestion,
+  if(isInterval){
+    const defEx=w.exercises[0];
+    const prevSets=prevLog&&prevLog[0]?prevLog[0].sets:null;
+    setData=[{
+      name:defEx.name,
+      isInterval:true,
+      overload:null,
       prevSets,
-      sets:Array.from({length:ex.sets},()=>({weight:fillWeight,reps:fillReps,done:false}))
-    };
-  });
+      sets:Array.from({length:defEx.sets},(_,i)=>({
+        weight:prevSets&&prevSets[i]?prevSets[i].weight:defEx.speed,
+        reps:prevSets&&prevSets[i]?prevSets[i].reps:defEx.incline,
+        done:false
+      }))
+    }];
+  } else {
+    setData=w.exercises.map((ex,i)=>{
+      const prev=prevLog?prevLog[i]:null;
+      const prevSets=prev?prev.sets:null;
+      const suggestion=getExerciseSuggestion(prevSets, currentCycleWeek);
+
+      const fillWeightKg=getSuggestedWeightKg(prevSets, currentCycleWeek, ex.weight);
+      const fillReps=prevSets&&prevSets[0]?prevSets[0].reps:ex.reps;
+      const fillWeight=(fillWeightKg*KG_TO_LBS).toFixed(1);
+
+      return {
+        name:ex.name,
+        overload:suggestion,
+        prevSets,
+        sets:Array.from({length:ex.sets},()=>({weight:fillWeight,reps:fillReps,done:false}))
+      };
+    });
+  }
 
   const color=w.color;
   const cfg=CYCLE_CONFIG[currentCycleWeek];
@@ -981,11 +1019,15 @@ function startWorkout(key){
   document.getElementById('kg-text').style.color='#444';
   document.getElementById('lbs-text').style.color=color;
 
-  // Cycle bar
-  document.getElementById('cycle-week-text').textContent=isDeload?'DELOAD WEEK':`WEEK ${cfg.weekNum} / 8`;
-  document.getElementById('cycle-week-text').style.color=cfg.color;
-  document.getElementById('cycle-effort-text').textContent=cfg.label;
-  document.getElementById('cycle-effort-text').style.color=cfg.color;
+  // Cycle bar — hidden for interval workouts
+  document.getElementById('cycle-bar').style.display=isInterval?'none':'';
+  document.getElementById('unit-toggle').style.display=isInterval?'none':'';
+  if(!isInterval){
+    document.getElementById('cycle-week-text').textContent=isDeload?'DELOAD WEEK':`WEEK ${cfg.weekNum} / 8`;
+    document.getElementById('cycle-week-text').style.color=cfg.color;
+    document.getElementById('cycle-effort-text').textContent=cfg.label;
+    document.getElementById('cycle-effort-text').style.color=cfg.color;
+  }
 
   // Footer buttons
   const startBtn=document.getElementById('start-workout-btn');
@@ -1054,42 +1096,47 @@ function renderExercises(deload){
   setData.forEach((ex,exIdx)=>{
     const card=document.createElement('div');
     card.className='ex-card';
+    const isIntervalEx=!!ex.isInterval;
 
-    const overloadHTML=ex.overload?`<div class="ex-overload" style="color:${ex.overload.color}">${ex.overload.text}</div>`:'';
-    // Last session summary for exercise header
+    const overloadHTML=!isIntervalEx&&ex.overload?`<div class="ex-overload" style="color:${ex.overload.color}">${ex.overload.text}</div>`:'';
+
     const firstPrev=ex.prevSets&&ex.prevSets[0];
-    const lastSessionHTML=firstPrev
-      ?`<div class="ex-last-session">LAST: ${currentUnit==='lbs'?convertWeight(firstPrev.weight,'lbs'):firstPrev.weight}${currentUnit} × ${firstPrev.reps} reps</div>`
-      :'';
+    const lastSessionHTML=isIntervalEx&&firstPrev
+      ?`<div class="ex-last-session">LAST: ${firstPrev.weight} km/h · ${firstPrev.reps}% incline</div>`
+      :!isIntervalEx&&firstPrev
+        ?`<div class="ex-last-session">LAST: ${currentUnit==='lbs'?convertWeight(firstPrev.weight,'lbs'):firstPrev.weight}${currentUnit} × ${firstPrev.reps} reps</div>`
+        :'';
 
     let setsHTML=`<div class="set-cols">
-      <div class="col-hdr">SET</div>
-      <div class="col-hdr col-unit">${currentUnit.toUpperCase()}</div>
-      <div class="col-hdr">REPS</div>
+      <div class="col-hdr">${isIntervalEx?'INT':'SET'}</div>
+      <div class="col-hdr col-unit">${isIntervalEx?'KM/H':currentUnit.toUpperCase()}</div>
+      <div class="col-hdr">${isIntervalEx?'INCL%':'REPS'}</div>
       <div class="col-hdr">✓</div>
     </div>`;
 
     ex.sets.forEach((set,si)=>{
       const prev=ex.prevSets&&ex.prevSets[si]?ex.prevSets[si]:null;
-      // Previous stats always shown in lbs (stored in kg → convert)
+
+      // RIR badge only for strength exercises
+      const rir=!isIntervalEx?getRIRForSet(currentCycleWeek,si):null;
+      const rirLabel=!isIntervalEx?getRIRLabel(rir):'';
+      const rirColor=!isIntervalEx?getRIRColor(rir):'';
       const prevWeightDisp=prev?`${currentUnit==='lbs'?convertWeight(prev.weight,'lbs'):prev.weight}${currentUnit}`:'—';
-      const prevRepsDisp=prev?`${prev.reps}r`:'—';
+      const prevLine=isIntervalEx&&prev
+        ?`${prev.weight} km/h · ${prev.reps}%`
+        :!isIntervalEx&&prev
+          ?`${prevWeightDisp} × ${prev.reps}r`
+          :'no prev';
 
-      // Per-set RIR badge
-      const rir=getRIRForSet(currentCycleWeek,si);
-      const rirLabel=getRIRLabel(rir);
-      const rirColor=getRIRColor(rir);
-
-      // Previous session data: weight in current unit, reps
-      const prevLine = prev
-        ? `${prevWeightDisp} × ${prev.reps}r`
-        : 'no prev';
+      const setNumInner=isIntervalEx
+        ?`<div class="set-num" id="num-${exIdx}-${si}" style="color:${set.done?color:'#333'}">${si+1}</div>`
+        :`<div class="set-num" id="num-${exIdx}-${si}" style="color:${set.done?color:'#333'}">${si+1}</div>
+          <div class="set-rir-badge" id="rir-${exIdx}-${si}" style="color:${set.done?'#000':rirColor};background:${set.done?rirColor:rirColor+'22'}">${rirLabel}</div>
+          <div class="set-prev-data" id="prev-${exIdx}-${si}">${prevLine}</div>`;
 
       setsHTML+=`<div class="set-row" id="row-${exIdx}-${si}" style="${set.done?'background:'+color+'0F':''}">
         <div class="set-num-col">
-          <div class="set-num" id="num-${exIdx}-${si}" style="color:${set.done?color:'#333'}">${si+1}</div>
-          <div class="set-rir-badge" id="rir-${exIdx}-${si}" style="color:${set.done?'#000':rirColor};background:${set.done?rirColor:rirColor+'22'}">${rirLabel}</div>
-          <div class="set-prev-data" id="prev-${exIdx}-${si}">${prevLine}</div>
+          ${setNumInner}
         </div>
         <div class="set-input-wrap">
           <input class="set-input" type="number" inputmode="decimal" value="${set.weight}" id="w-${exIdx}-${si}"
@@ -1098,7 +1145,7 @@ function renderExercises(deload){
             onchange="updateSet(${exIdx},${si},'weight',this.value);if(workoutStarted)saveWorkoutProgress()">
         </div>
         <div class="set-input-wrap">
-          <input class="set-input" type="number" inputmode="numeric" value="${set.reps}" id="r-${exIdx}-${si}"
+          <input class="set-input" type="number" inputmode="decimal" value="${set.reps}" id="r-${exIdx}-${si}"
             style="border-color:${set.done?color+'44':'#1e1e1e'}"
             oninput="updateSet(${exIdx},${si},'reps',this.value);if(workoutStarted)saveWorkoutProgress()"
             onchange="updateSet(${exIdx},${si},'reps',this.value);if(workoutStarted)saveWorkoutProgress()">
@@ -1108,13 +1155,15 @@ function renderExercises(deload){
       </div>`;
     });
 
+    const swapBtn=isIntervalEx?'':`<button class="swap-btn" onclick="openLibrary(${exIdx})" style="color:${color};border-color:${color}55;background:${color}15">⇄ SWAP</button>`;
+
     card.innerHTML=`<div class="ex-header">
       <div class="ex-header-left">
         <div class="ex-name">${ex.name.toUpperCase()}</div>
         ${lastSessionHTML}
         ${overloadHTML}
       </div>
-      <button class="swap-btn" onclick="openLibrary(${exIdx})" style="color:${color};border-color:${color}55;background:${color}15">⇄ SWAP</button>
+      ${swapBtn}
     </div>${setsHTML}`;
 
     list.appendChild(card);
@@ -1180,12 +1229,16 @@ function updateStats(){
 
 // ── Save Log ───────────────────────────────────────────────────────────────────
 function saveWorkoutLog(){
+  const isInterval=WORKOUTS[currentWorkout].type==='interval';
   const log=setData.map(ex=>({
     name:ex.name,
-    sets:ex.sets.map(s=>({weight:currentUnit==='lbs'?convertWeight(s.weight,'kg'):s.weight, reps:s.reps}))
+    sets:ex.sets.map(s=>({
+      weight:isInterval?s.weight:(currentUnit==='lbs'?convertWeight(s.weight,'kg'):s.weight),
+      reps:s.reps
+    }))
   }));
   saveLog(currentWorkout, log);
-  incrementWorkoutCount();
+  if(STRENGTH_KEYS.has(currentWorkout)) incrementWorkoutCount();
   recordWorkoutToHistory(currentWorkout);
   clearWorkoutProgress();
 }
@@ -1295,7 +1348,7 @@ function renderWeeklyTracker(){
   if(!el) return;
   const nextKey=getNextWorkoutKey();
   const done=getThisWeekDone();
-  const keys=['A','B','C','D'];
+  const keys=['A','B','N','C','D'];
 
   const dotsHTML=keys.map(k=>{
     const isDone=done.includes(k);
