@@ -1468,6 +1468,21 @@ function setLastWorkout(key){
   renderWeeklyTracker();
 }
 
+// ── One-time history seed (week of 2026-06-04) ────────────────────────────────
+(function(){
+  if(localStorage.getItem('gymlog_seeded_20260604')) return;
+  const now=Date.now(), day=86400000;
+  const existing=loadHistory().filter(h=>h.date<new Date(now-7*day).toISOString());
+  saveHistory([
+    ...existing,
+    {key:'A',date:new Date(now-6*day).toISOString()},
+    {key:'B',date:new Date(now-4*day).toISOString()},
+    {key:'N',date:new Date(now-2*day).toISOString()},
+    {key:'C',date:new Date(now-1*day).toISOString()},
+  ]);
+  localStorage.setItem('gymlog_seeded_20260604','1');
+})();
+
 // ── Page Load Bootstrap ────────────────────────────────────────────────────────
 renderWeeklyTracker();
 restoreWorkoutProgress();
