@@ -172,17 +172,17 @@ input[type=number]{-moz-appearance:textfield}
     <div class="app-sub">CHOOSE YOUR WORKOUT</div>
   </div>
   <div class="workout-grid">
-    <div class="workout-card" id="card-A" style="border-color:#FF6B3522" onclick="startWorkout('A')">
-      <div class="workout-card-letter" style="color:#FF6B35">A</div>
-      <div class="workout-card-title">CHEST & BACK</div>
+    <div class="workout-card" id="card-A" style="border-color:#00E5FF22" onclick="startWorkout('A')">
+      <div class="workout-card-letter" style="color:#00E5FF">A</div>
+      <div class="workout-card-title">SHOULDERS & ARMS</div>
       <div class="workout-card-sub" id="sub-A">7 EXERCISES</div>
-      <div class="workout-card-bar" style="background:#FF6B35"></div>
+      <div class="workout-card-bar" style="background:#00E5FF"></div>
     </div>
-    <div class="workout-card" id="card-B" style="border-color:#A8FF3E22" onclick="startWorkout('B')">
-      <div class="workout-card-letter" style="color:#A8FF3E">B</div>
-      <div class="workout-card-title">BACK & SHOULDERS</div>
-      <div class="workout-card-sub" id="sub-B">6 EXERCISES</div>
-      <div class="workout-card-bar" style="background:#A8FF3E"></div>
+    <div class="workout-card" id="card-B" style="border-color:#FF6B3522" onclick="startWorkout('B')">
+      <div class="workout-card-letter" style="color:#FF6B35">B</div>
+      <div class="workout-card-title">CHEST & BACK</div>
+      <div class="workout-card-sub" id="sub-B">7 EXERCISES</div>
+      <div class="workout-card-bar" style="background:#FF6B35"></div>
     </div>
     <div class="workout-card" id="card-N" style="grid-column:1/-1;border-color:#FFC10722" onclick="startWorkout('N')">
       <div class="workout-card-letter" style="color:#FFC107">N</div>
@@ -190,17 +190,17 @@ input[type=number]{-moz-appearance:textfield}
       <div class="workout-card-sub" id="sub-N">INTERVALS · 4 × 4 MIN</div>
       <div class="workout-card-bar" style="background:#FFC107"></div>
     </div>
-    <div class="workout-card" id="card-C" style="border-color:#FF2D7822" onclick="startWorkout('C')">
-      <div class="workout-card-letter" style="color:#FF2D78">C</div>
-      <div class="workout-card-title">CHEST & LEGS</div>
-      <div class="workout-card-sub" id="sub-C">7 EXERCISES</div>
-      <div class="workout-card-bar" style="background:#FF2D78"></div>
+    <div class="workout-card" id="card-C" style="border-color:#A8FF3E22" onclick="startWorkout('C')">
+      <div class="workout-card-letter" style="color:#A8FF3E">C</div>
+      <div class="workout-card-title">BACK & SHOULDERS</div>
+      <div class="workout-card-sub" id="sub-C">6 EXERCISES</div>
+      <div class="workout-card-bar" style="background:#A8FF3E"></div>
     </div>
-    <div class="workout-card" id="card-D" style="border-color:#00E5FF22" onclick="startWorkout('D')">
-      <div class="workout-card-letter" style="color:#00E5FF">D</div>
-      <div class="workout-card-title">SHOULDERS & ARMS</div>
+    <div class="workout-card" id="card-D" style="border-color:#FF2D7822" onclick="startWorkout('D')">
+      <div class="workout-card-letter" style="color:#FF2D78">D</div>
+      <div class="workout-card-title">CHEST & LEGS</div>
       <div class="workout-card-sub" id="sub-D">7 EXERCISES</div>
-      <div class="workout-card-bar" style="background:#00E5FF"></div>
+      <div class="workout-card-bar" style="background:#FF2D78"></div>
     </div>
   </div>
   <div class="weekly-section" id="weekly-section"></div>
@@ -489,7 +489,35 @@ const MUSCLE_GROUPS = ['All','Chest','Back','Shoulders','Biceps','Triceps','Legs
 
 // ── Workout Definitions ────────────────────────────────────────────────────────
 const WORKOUTS = {
-  A:{label:'A',title:'CHEST & BACK',color:'#FF6B35',
+  A:{label:'A',title:'SHOULDERS & ARMS',color:'#00E5FF',
+    exercises:[
+      {name:'Cable Lateral Raises',sets:3,reps:'10',weight:'10.5'},
+      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
+      {name:'Incline DB Lateral Raises',sets:3,reps:'10',weight:'8'},
+      {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
+      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
+      {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
+      {name:'DB Bicep Curl',sets:3,reps:'10',weight:'14'},
+    ],
+    mobility:[
+      {name:'Wall Shoulder Circles',duration:'45 sec',
+        cue:"Stand arm's length from wall. Place palm flat on wall, make large slow circles forward × 10, then backward × 10. Keep shoulder blade controlled throughout.",
+        yt:'wall+shoulder+circles+mobility'},
+      {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',
+        cue:'Pull one arm straight across your chest using the opposite hand pressing at the elbow (not wrist). Keep the shoulder down. Feel the stretch in the rear delt and upper back.',
+        yt:'cross+body+shoulder+stretch'},
+      {name:'Wrist Circles & Flexor Stretch',duration:'45 sec',
+        cue:'Extend arm palm-up, use other hand to gently pull fingers back toward you. Hold 20 sec. Then make 10 slow wrist circles each direction.',
+        yt:'wrist+mobility+flexor+stretch'},
+      {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side',
+        cue:'Sit upright on a bench, hands lightly behind head. Rotate ONLY your upper back — left, then right. Hips stay square. Lead with your elbow and eyes.',
+        yt:'seated+thoracic+rotation+mobility'},
+      {name:'Neck Side Stretch',duration:'30 sec each side',
+        cue:'Tilt one ear toward your shoulder. Place same-side hand gently on top of head for light pressure — never pull. Keep the opposite shoulder actively pressed down.',
+        yt:'neck+side+stretch+mobility'},
+    ]
+  },
+  B:{label:'B',title:'CHEST & BACK',color:'#FF6B35',
     exercises:[
       {name:'Incline Barbell Bench Press',sets:3,reps:'7',weight:'80'},
       {name:'Uni-Lateral Machine Chest Press',sets:2,reps:'8',weight:'50'},
@@ -517,7 +545,7 @@ const WORKOUTS = {
         yt:'hip+flexor+stretch+kneeling'},
     ]
   },
-  B:{label:'B',title:'BACK & SHOULDERS',color:'#A8FF3E',
+  C:{label:'C',title:'BACK & SHOULDERS',color:'#A8FF3E',
     exercises:[
       {name:'Chest Supported Row',sets:3,reps:'10',weight:'32'},
       {name:'Close Grip Lat Pulldown',sets:3,reps:'9',weight:'72.5'},
@@ -541,13 +569,11 @@ const WORKOUTS = {
         yt:'neck+stretches+mobility+routine'},
     ]
   },
-  C:{label:'C',title:'CHEST & LEGS',color:'#FF2D78',
+  D:{label:'D',title:'CHEST & LEGS',color:'#FF2D78',
     exercises:[
       {name:'Machine Chest Press',sets:3,reps:'9',weight:'57'},
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
       {name:'Machine Pec Deck Flys',sets:3,reps:'9',weight:'57'},
-      // Dual Cable Face Away Curl removed — bicep injury.
-      // Replaced Box Jump + Hack Squat with Bodyweight Lunge + Petersen Step Down.
       {name:'Bodyweight Lunge',sets:3,reps:'12',weight:'0'},
       {name:'Petersen Step Down',sets:3,reps:'10',weight:'0'},
       {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
@@ -569,34 +595,6 @@ const WORKOUTS = {
       {name:'Calf Stretch (wall)',duration:'30 sec each side',
         cue:'Face a wall, place toes up the wall with heel on floor. Lean into it — straight leg targets the gastroc, slightly bent knee targets the soleus. Both are important for squat depth.',
         yt:'wall+calf+stretch+gastroc+soleus'},
-    ]
-  },
-  D:{label:'D',title:'SHOULDERS & ARMS',color:'#00E5FF',
-    exercises:[
-      {name:'Cable Lateral Raises',sets:3,reps:'10',weight:'10.5'},
-      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
-      {name:'Incline DB Lateral Raises',sets:3,reps:'10',weight:'8'},
-      {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
-      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
-      {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
-      {name:'DB Bicep Curl',sets:3,reps:'10',weight:'14'},
-    ],
-    mobility:[
-      {name:'Wall Shoulder Circles',duration:'45 sec',
-        cue:"Stand arm's length from wall. Place palm flat on wall, make large slow circles forward × 10, then backward × 10. Keep shoulder blade controlled throughout.",
-        yt:'wall+shoulder+circles+mobility'},
-      {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',
-        cue:'Pull one arm straight across your chest using the opposite hand pressing at the elbow (not wrist). Keep the shoulder down. Feel the stretch in the rear delt and upper back.',
-        yt:'cross+body+shoulder+stretch'},
-      {name:'Wrist Circles & Flexor Stretch',duration:'45 sec',
-        cue:'Extend arm palm-up, use other hand to gently pull fingers back toward you. Hold 20 sec. Then make 10 slow wrist circles each direction.',
-        yt:'wrist+mobility+flexor+stretch'},
-      {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side',
-        cue:'Sit upright on a bench, hands lightly behind head. Rotate ONLY your upper back — left, then right. Hips stay square. Lead with your elbow and eyes.',
-        yt:'seated+thoracic+rotation+mobility'},
-      {name:'Neck Side Stretch',duration:'30 sec each side',
-        cue:'Tilt one ear toward your shoulder. Place same-side hand gently on top of head for light pressure — never pull. Keep the opposite shoulder actively pressed down.',
-        yt:'neck+side+stretch+mobility'},
     ]
   },
   N:{label:'N',title:'NORWEGIAN 4×4',color:'#FFC107',type:'interval',
