@@ -161,6 +161,17 @@ input[type=number]{-moz-appearance:textfield}
 
 /* EXERCISE LAST SESSION HEADER */
 .ex-last-session{font-size:11px;color:#484848;letter-spacing:0.5px;font-weight:600;margin-top:3px}
+
+/* SETUP MODAL */
+.setup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000;align-items:center;justify-content:center;padding:24px}
+.setup-overlay.open{display:flex}
+.setup-box{background:#0a0a0a;border:1px solid #222;border-radius:24px;padding:32px 24px;width:100%;max-width:360px}
+.setup-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;color:#fff;margin-bottom:8px}
+.setup-sub{font-size:13px;color:#555;margin-bottom:24px;line-height:1.5}
+.setup-btn{display:block;width:100%;padding:14px;border-radius:14px;font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;cursor:pointer;border:1px solid #222;background:#111;color:#666;margin-bottom:10px;text-align:left;padding-left:18px;transition:background 0.15s}
+.setup-btn:active{opacity:0.8}
+.setup-cancel{background:none;border:none;color:#333;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;cursor:pointer;display:block;width:100%;text-align:center;margin-top:8px;padding:8px}
+.set-last-btn{background:none;border:none;color:#333;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;display:block;width:100%;text-align:center;margin-top:12px;padding:4px}
 </style>
 </head>
 <body>
@@ -204,6 +215,21 @@ input[type=number]{-moz-appearance:textfield}
     </div>
   </div>
   <div class="weekly-section" id="weekly-section"></div>
+  <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
+</div>
+
+<!-- SETUP MODAL -->
+<div class="setup-overlay" id="setup-modal">
+  <div class="setup-box">
+    <div class="setup-title">LAST WORKOUT DONE?</div>
+    <div class="setup-sub">Tell the app which workout you completed most recently so NEXT UP shows correctly.</div>
+    <button class="setup-btn" id="setup-A" onclick="setLastWorkout('A')">A — SHOULDERS & ARMS</button>
+    <button class="setup-btn" id="setup-B" onclick="setLastWorkout('B')">B — CHEST & BACK</button>
+    <button class="setup-btn" id="setup-N" onclick="setLastWorkout('N')">N — NORWEGIAN 4×4</button>
+    <button class="setup-btn" id="setup-C" onclick="setLastWorkout('C')">C — BACK & SHOULDERS</button>
+    <button class="setup-btn" id="setup-D" onclick="setLastWorkout('D')">D — CHEST & LEGS</button>
+    <button class="setup-cancel" onclick="closeSetupModal()">CANCEL</button>
+  </div>
 </div>
 
 <!-- WORKOUT -->
@@ -1423,9 +1449,26 @@ function selectExercise(name){
   updateStats();
 }
 
+// ── Setup Modal (set last completed workout) ───────────────────────────────────
+function openSetupModal(){
+  // Highlight current next-up's predecessor as the likely last done
+  SEQUENCE.forEach(k=>{
+    const btn=document.getElementById('setup-'+k);
+    if(!btn) return;
+    const w=WORKOUTS[k];
+    btn.style.borderColor=w.color+'55';
+    btn.style.color='#888';
+  });
+  document.getElementById('setup-modal').classList.add('open');
+}
+function closeSetupModal(){ document.getElementById('setup-modal').classList.remove('open'); }
+function setLastWorkout(key){
+  recordWorkoutToHistory(key);
+  closeSetupModal();
+  renderWeeklyTracker();
+}
+
 // ── Page Load Bootstrap ────────────────────────────────────────────────────────
-// Render weekly tracker on home screen, then check if a workout was in-progress
-// when the tab was killed (restores full state if found).
 renderWeeklyTracker();
 restoreWorkoutProgress();
 </script>
