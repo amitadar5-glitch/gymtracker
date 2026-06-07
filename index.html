@@ -332,6 +332,8 @@ const WORKOUTS_PER_CYCLE = 4;  // A+B+C+D = 1 week
 const TOTAL_CYCLE_WEEKS = 9;   // 8 training + 1 deload
 const SEQUENCE = ['A','B','N','C','D'];       // full weekly rotation
 const STRENGTH_KEYS = new Set(['A','B','C','D']); // count toward progressive overload cycle
+// Chest volume progression: key → index of exercise that gets extra sets
+const CHEST_VOL_EX = {B:2, D:2}; // B: Low to High Cable Flys, D: Machine Pec Deck Flys
 
 // Week-by-week RIR (Reps In Reserve) targets — index 0 = Week 1, index 8 = Deload
 // rir array: [set1, set2, set3]; 0 = go to failure, 'deload' = special
@@ -955,6 +957,25 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pagehide',()=>{ if(currentWorkout && workoutStarted) saveWorkoutProgress(); });
 window.addEventListener('beforeunload',()=>{ if(currentWorkout && workoutStarted) saveWorkoutProgress(); });
 
+// ── Chest Volume Progression ───────────────────────────────────────────────────
+// Starts next cycle: 20 sets/week, +2 every completed B+D pair after that.
+// Base is 17 (B=8, D=9), so week-0 adds +3, then +2/week.
+function initChestVolume(){
+  if(!localStorage.getItem('gymlog_vol_start_date')){
+    // Activate from tomorrow so today's workout stays at current sets
+    localStorage.setItem('gymlog_vol_start_date',
+      new Date(Date.now()+24*60*60*1000).toISOString());
+  }
+}
+function getChestExtraSets(key){
+  const startDate=localStorage.getItem('gymlog_vol_start_date');
+  if(!startDate) return 0;
+  const h=loadHistory().filter(e=>e.date>=startDate);
+  const volWeek=Math.min(h.filter(e=>e.key==='B').length, h.filter(e=>e.key==='D').length);
+  const totalExtra=3+volWeek*2; // week 0 → +3 to reach 20; each week +2 more
+  return key==='B'?Math.floor(totalExtra/2):Math.ceil(totalExtra/2);
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 function convertWeight(val,toUnit){
@@ -1011,20 +1032,24 @@ function startWorkout(key){
       }))
     }];
   } else {
+    const chestVolIdx=CHEST_VOL_EX[key];
+    const chestExtra=chestVolIdx!==undefined?getChestExtraSets(key):0;
     setData=w.exercises.map((ex,i)=>{
       const prev=prevLog?prevLog[i]:null;
       const prevSets=prev?prev.sets:null;
       const suggestion=getExerciseSuggestion(prevSets, currentCycleWeek);
-
       const fillWeightKg=getSuggestedWeightKg(prevSets, currentCycleWeek, ex.weight);
       const fillReps=prevSets&&prevSets[0]?prevSets[0].reps:ex.reps;
       const fillWeight=(fillWeightKg*KG_TO_LBS).toFixed(1);
-
+      const setCount=ex.sets+(i===chestVolIdx?chestExtra:0);
+      const volNote=i===chestVolIdx&&chestExtra>0
+        ?{text:`📈 CHEST VOLUME +${chestExtra} SETS (${ex.sets+chestExtra} total)`,color:'#FFC107'}
+        :null;
       return {
         name:ex.name,
-        overload:suggestion,
+        overload:volNote||suggestion,
         prevSets,
-        sets:Array.from({length:ex.sets},()=>({weight:fillWeight,reps:fillReps,done:false}))
+        sets:Array.from({length:setCount},()=>({weight:fillWeight,reps:fillReps,done:false}))
       };
     });
   }
@@ -1484,6 +1509,7 @@ function setLastWorkout(key){
 })();
 
 // ── Page Load Bootstrap ────────────────────────────────────────────────────────
+initChestVolume();
 renderWeeklyTracker();
 restoreWorkoutProgress();
 </script>
