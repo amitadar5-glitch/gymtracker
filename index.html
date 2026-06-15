@@ -332,8 +332,8 @@ const WORKOUTS_PER_CYCLE = 4;  // A+B+C+D = 1 week
 const TOTAL_CYCLE_WEEKS = 9;   // 8 training + 1 deload
 const SEQUENCE = ['A','B','N','C','D'];       // full weekly rotation
 const STRENGTH_KEYS = new Set(['A','B','C','D']); // count toward progressive overload cycle
-// Chest volume progression: key → index of exercise that gets extra sets
-const CHEST_VOL_EX = {B:2, D:2}; // B: Low to High Cable Flys, D: Machine Pec Deck Flys
+// Chest volume progression: key → indices of chest exercises that share extra sets
+const CHEST_VOL_EX = {B:[0,1,2], D:[0,1,2]};
 
 // Week-by-week RIR (Reps In Reserve) targets — index 0 = Week 1, index 8 = Deload
 // rir array: [set1, set2, set3]; 0 = go to failure, 'deload' = special
@@ -972,8 +972,16 @@ function getChestExtraSets(key){
   if(!startDate) return 0;
   const h=loadHistory().filter(e=>e.date>=startDate);
   const volWeek=Math.min(h.filter(e=>e.key==='B').length, h.filter(e=>e.key==='D').length);
-  const totalExtra=3+volWeek*2; // week 0 → +3 to reach 20; each week +2 more
+  const totalExtra=3+volWeek*2;
   return key==='B'?Math.floor(totalExtra/2):Math.ceil(totalExtra/2);
+}
+function chestExtraSetsForExercise(key, exIdx, totalExtra){
+  const idxs=CHEST_VOL_EX[key];
+  if(!idxs) return 0;
+  const pos=idxs.indexOf(exIdx);
+  if(pos===-1) return 0;
+  const n=idxs.length;
+  return Math.floor(totalExtra/n)+(pos<(totalExtra%n)?1:0);
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -1032,8 +1040,7 @@ function startWorkout(key){
       }))
     }];
   } else {
-    const chestVolIdx=CHEST_VOL_EX[key];
-    const chestExtra=chestVolIdx!==undefined?getChestExtraSets(key):0;
+    const totalChestExtra=CHEST_VOL_EX[key]?getChestExtraSets(key):0;
     setData=w.exercises.map((ex,i)=>{
       const prev=prevLog?prevLog[i]:null;
       const prevSets=prev?prev.sets:null;
@@ -1041,9 +1048,10 @@ function startWorkout(key){
       const fillWeightKg=getSuggestedWeightKg(prevSets, currentCycleWeek, ex.weight);
       const fillReps=prevSets&&prevSets[0]?prevSets[0].reps:ex.reps;
       const fillWeight=(fillWeightKg*KG_TO_LBS).toFixed(1);
-      const setCount=ex.sets+(i===chestVolIdx?chestExtra:0);
-      const volNote=i===chestVolIdx&&chestExtra>0
-        ?{text:`📈 CHEST VOLUME +${chestExtra} SETS (${ex.sets+chestExtra} total)`,color:'#FFC107'}
+      const extraSets=chestExtraSetsForExercise(key,i,totalChestExtra);
+      const setCount=ex.sets+extraSets;
+      const volNote=extraSets>0
+        ?{text:`📈 CHEST VOL +${extraSets} SET${extraSets>1?'S':''} (${ex.sets+extraSets} total)`,color:'#FFC107'}
         :null;
       return {
         name:ex.name,
