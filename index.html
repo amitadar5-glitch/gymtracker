@@ -161,6 +161,17 @@ input[type=number]{-moz-appearance:textfield}
 
 /* EXERCISE LAST SESSION HEADER */
 .ex-last-session{font-size:11px;color:#484848;letter-spacing:0.5px;font-weight:600;margin-top:3px}
+
+/* SETUP MODAL */
+.setup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000;align-items:center;justify-content:center;padding:24px}
+.setup-overlay.open{display:flex}
+.setup-box{background:#0a0a0a;border:1px solid #222;border-radius:24px;padding:32px 24px;width:100%;max-width:360px}
+.setup-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;color:#fff;margin-bottom:8px}
+.setup-sub{font-size:13px;color:#555;margin-bottom:24px;line-height:1.5}
+.setup-btn{display:block;width:100%;padding:14px;border-radius:14px;font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;cursor:pointer;border:1px solid #222;background:#111;color:#666;margin-bottom:10px;text-align:left;padding-left:18px;transition:background 0.15s}
+.setup-btn:active{opacity:0.8}
+.setup-cancel{background:none;border:none;color:#333;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;cursor:pointer;display:block;width:100%;text-align:center;margin-top:8px;padding:8px}
+.set-last-btn{background:none;border:none;color:#333;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;display:block;width:100%;text-align:center;margin-top:12px;padding:4px}
 </style>
 </head>
 <body>
@@ -172,17 +183,17 @@ input[type=number]{-moz-appearance:textfield}
     <div class="app-sub">CHOOSE YOUR WORKOUT</div>
   </div>
   <div class="workout-grid">
-    <div class="workout-card" id="card-A" style="border-color:#FF6B3522" onclick="startWorkout('A')">
-      <div class="workout-card-letter" style="color:#FF6B35">A</div>
-      <div class="workout-card-title">CHEST & BACK</div>
+    <div class="workout-card" id="card-A" style="border-color:#00E5FF22" onclick="startWorkout('A')">
+      <div class="workout-card-letter" style="color:#00E5FF">A</div>
+      <div class="workout-card-title">SHOULDERS & ARMS</div>
       <div class="workout-card-sub" id="sub-A">7 EXERCISES</div>
-      <div class="workout-card-bar" style="background:#FF6B35"></div>
+      <div class="workout-card-bar" style="background:#00E5FF"></div>
     </div>
-    <div class="workout-card" id="card-B" style="border-color:#A8FF3E22" onclick="startWorkout('B')">
-      <div class="workout-card-letter" style="color:#A8FF3E">B</div>
-      <div class="workout-card-title">BACK & SHOULDERS</div>
-      <div class="workout-card-sub" id="sub-B">6 EXERCISES</div>
-      <div class="workout-card-bar" style="background:#A8FF3E"></div>
+    <div class="workout-card" id="card-B" style="border-color:#FF6B3522" onclick="startWorkout('B')">
+      <div class="workout-card-letter" style="color:#FF6B35">B</div>
+      <div class="workout-card-title">CHEST & BACK</div>
+      <div class="workout-card-sub" id="sub-B">7 EXERCISES</div>
+      <div class="workout-card-bar" style="background:#FF6B35"></div>
     </div>
     <div class="workout-card" id="card-N" style="grid-column:1/-1;border-color:#FFC10722" onclick="startWorkout('N')">
       <div class="workout-card-letter" style="color:#FFC107">N</div>
@@ -190,20 +201,35 @@ input[type=number]{-moz-appearance:textfield}
       <div class="workout-card-sub" id="sub-N">INTERVALS · 4 × 4 MIN</div>
       <div class="workout-card-bar" style="background:#FFC107"></div>
     </div>
-    <div class="workout-card" id="card-C" style="border-color:#FF2D7822" onclick="startWorkout('C')">
-      <div class="workout-card-letter" style="color:#FF2D78">C</div>
-      <div class="workout-card-title">CHEST & LEGS</div>
-      <div class="workout-card-sub" id="sub-C">7 EXERCISES</div>
-      <div class="workout-card-bar" style="background:#FF2D78"></div>
+    <div class="workout-card" id="card-C" style="border-color:#A8FF3E22" onclick="startWorkout('C')">
+      <div class="workout-card-letter" style="color:#A8FF3E">C</div>
+      <div class="workout-card-title">BACK & SHOULDERS</div>
+      <div class="workout-card-sub" id="sub-C">6 EXERCISES</div>
+      <div class="workout-card-bar" style="background:#A8FF3E"></div>
     </div>
-    <div class="workout-card" id="card-D" style="border-color:#00E5FF22" onclick="startWorkout('D')">
-      <div class="workout-card-letter" style="color:#00E5FF">D</div>
-      <div class="workout-card-title">SHOULDERS & ARMS</div>
+    <div class="workout-card" id="card-D" style="border-color:#FF2D7822" onclick="startWorkout('D')">
+      <div class="workout-card-letter" style="color:#FF2D78">D</div>
+      <div class="workout-card-title">CHEST & LEGS</div>
       <div class="workout-card-sub" id="sub-D">7 EXERCISES</div>
-      <div class="workout-card-bar" style="background:#00E5FF"></div>
+      <div class="workout-card-bar" style="background:#FF2D78"></div>
     </div>
   </div>
   <div class="weekly-section" id="weekly-section"></div>
+  <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
+</div>
+
+<!-- SETUP MODAL -->
+<div class="setup-overlay" id="setup-modal">
+  <div class="setup-box">
+    <div class="setup-title">LAST WORKOUT DONE?</div>
+    <div class="setup-sub">Tell the app which workout you completed most recently so NEXT UP shows correctly.</div>
+    <button class="setup-btn" id="setup-A" onclick="setLastWorkout('A')">A — SHOULDERS & ARMS</button>
+    <button class="setup-btn" id="setup-B" onclick="setLastWorkout('B')">B — CHEST & BACK</button>
+    <button class="setup-btn" id="setup-N" onclick="setLastWorkout('N')">N — NORWEGIAN 4×4</button>
+    <button class="setup-btn" id="setup-C" onclick="setLastWorkout('C')">C — BACK & SHOULDERS</button>
+    <button class="setup-btn" id="setup-D" onclick="setLastWorkout('D')">D — CHEST & LEGS</button>
+    <button class="setup-cancel" onclick="closeSetupModal()">CANCEL</button>
+  </div>
 </div>
 
 <!-- WORKOUT -->
@@ -306,6 +332,8 @@ const WORKOUTS_PER_CYCLE = 4;  // A+B+C+D = 1 week
 const TOTAL_CYCLE_WEEKS = 9;   // 8 training + 1 deload
 const SEQUENCE = ['A','B','N','C','D'];       // full weekly rotation
 const STRENGTH_KEYS = new Set(['A','B','C','D']); // count toward progressive overload cycle
+// Chest volume progression: key → index of exercise that gets extra sets
+const CHEST_VOL_EX = {B:2, D:2}; // B: Low to High Cable Flys, D: Machine Pec Deck Flys
 
 // Week-by-week RIR (Reps In Reserve) targets — index 0 = Week 1, index 8 = Deload
 // rir array: [set1, set2, set3]; 0 = go to failure, 'deload' = special
@@ -489,7 +517,35 @@ const MUSCLE_GROUPS = ['All','Chest','Back','Shoulders','Biceps','Triceps','Legs
 
 // ── Workout Definitions ────────────────────────────────────────────────────────
 const WORKOUTS = {
-  A:{label:'A',title:'CHEST & BACK',color:'#FF6B35',
+  A:{label:'A',title:'SHOULDERS & ARMS',color:'#00E5FF',
+    exercises:[
+      {name:'Cable Lateral Raises',sets:3,reps:'10',weight:'10.5'},
+      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
+      {name:'Incline DB Lateral Raises',sets:3,reps:'10',weight:'8'},
+      {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
+      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
+      {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
+      {name:'DB Bicep Curl',sets:3,reps:'10',weight:'14'},
+    ],
+    mobility:[
+      {name:'Wall Shoulder Circles',duration:'45 sec',
+        cue:"Stand arm's length from wall. Place palm flat on wall, make large slow circles forward × 10, then backward × 10. Keep shoulder blade controlled throughout.",
+        yt:'wall+shoulder+circles+mobility'},
+      {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',
+        cue:'Pull one arm straight across your chest using the opposite hand pressing at the elbow (not wrist). Keep the shoulder down. Feel the stretch in the rear delt and upper back.',
+        yt:'cross+body+shoulder+stretch'},
+      {name:'Wrist Circles & Flexor Stretch',duration:'45 sec',
+        cue:'Extend arm palm-up, use other hand to gently pull fingers back toward you. Hold 20 sec. Then make 10 slow wrist circles each direction.',
+        yt:'wrist+mobility+flexor+stretch'},
+      {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side',
+        cue:'Sit upright on a bench, hands lightly behind head. Rotate ONLY your upper back — left, then right. Hips stay square. Lead with your elbow and eyes.',
+        yt:'seated+thoracic+rotation+mobility'},
+      {name:'Neck Side Stretch',duration:'30 sec each side',
+        cue:'Tilt one ear toward your shoulder. Place same-side hand gently on top of head for light pressure — never pull. Keep the opposite shoulder actively pressed down.',
+        yt:'neck+side+stretch+mobility'},
+    ]
+  },
+  B:{label:'B',title:'CHEST & BACK',color:'#FF6B35',
     exercises:[
       {name:'Incline Barbell Bench Press',sets:3,reps:'7',weight:'80'},
       {name:'Uni-Lateral Machine Chest Press',sets:2,reps:'8',weight:'50'},
@@ -517,7 +573,7 @@ const WORKOUTS = {
         yt:'hip+flexor+stretch+kneeling'},
     ]
   },
-  B:{label:'B',title:'BACK & SHOULDERS',color:'#A8FF3E',
+  C:{label:'C',title:'BACK & SHOULDERS',color:'#A8FF3E',
     exercises:[
       {name:'Chest Supported Row',sets:3,reps:'10',weight:'32'},
       {name:'Close Grip Lat Pulldown',sets:3,reps:'9',weight:'72.5'},
@@ -541,13 +597,11 @@ const WORKOUTS = {
         yt:'neck+stretches+mobility+routine'},
     ]
   },
-  C:{label:'C',title:'CHEST & LEGS',color:'#FF2D78',
+  D:{label:'D',title:'CHEST & LEGS',color:'#FF2D78',
     exercises:[
       {name:'Machine Chest Press',sets:3,reps:'9',weight:'57'},
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
       {name:'Machine Pec Deck Flys',sets:3,reps:'9',weight:'57'},
-      // Dual Cable Face Away Curl removed — bicep injury.
-      // Replaced Box Jump + Hack Squat with Bodyweight Lunge + Petersen Step Down.
       {name:'Bodyweight Lunge',sets:3,reps:'12',weight:'0'},
       {name:'Petersen Step Down',sets:3,reps:'10',weight:'0'},
       {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
@@ -569,34 +623,6 @@ const WORKOUTS = {
       {name:'Calf Stretch (wall)',duration:'30 sec each side',
         cue:'Face a wall, place toes up the wall with heel on floor. Lean into it — straight leg targets the gastroc, slightly bent knee targets the soleus. Both are important for squat depth.',
         yt:'wall+calf+stretch+gastroc+soleus'},
-    ]
-  },
-  D:{label:'D',title:'SHOULDERS & ARMS',color:'#00E5FF',
-    exercises:[
-      {name:'Cable Lateral Raises',sets:3,reps:'10',weight:'10.5'},
-      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'8',weight:'17.5'},
-      {name:'Incline DB Lateral Raises',sets:3,reps:'10',weight:'8'},
-      {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
-      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
-      {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
-      {name:'DB Bicep Curl',sets:3,reps:'10',weight:'14'},
-    ],
-    mobility:[
-      {name:'Wall Shoulder Circles',duration:'45 sec',
-        cue:"Stand arm's length from wall. Place palm flat on wall, make large slow circles forward × 10, then backward × 10. Keep shoulder blade controlled throughout.",
-        yt:'wall+shoulder+circles+mobility'},
-      {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',
-        cue:'Pull one arm straight across your chest using the opposite hand pressing at the elbow (not wrist). Keep the shoulder down. Feel the stretch in the rear delt and upper back.',
-        yt:'cross+body+shoulder+stretch'},
-      {name:'Wrist Circles & Flexor Stretch',duration:'45 sec',
-        cue:'Extend arm palm-up, use other hand to gently pull fingers back toward you. Hold 20 sec. Then make 10 slow wrist circles each direction.',
-        yt:'wrist+mobility+flexor+stretch'},
-      {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side',
-        cue:'Sit upright on a bench, hands lightly behind head. Rotate ONLY your upper back — left, then right. Hips stay square. Lead with your elbow and eyes.',
-        yt:'seated+thoracic+rotation+mobility'},
-      {name:'Neck Side Stretch',duration:'30 sec each side',
-        cue:'Tilt one ear toward your shoulder. Place same-side hand gently on top of head for light pressure — never pull. Keep the opposite shoulder actively pressed down.',
-        yt:'neck+side+stretch+mobility'},
     ]
   },
   N:{label:'N',title:'NORWEGIAN 4×4',color:'#FFC107',type:'interval',
@@ -931,6 +957,25 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pagehide',()=>{ if(currentWorkout && workoutStarted) saveWorkoutProgress(); });
 window.addEventListener('beforeunload',()=>{ if(currentWorkout && workoutStarted) saveWorkoutProgress(); });
 
+// ── Chest Volume Progression ───────────────────────────────────────────────────
+// Starts next cycle: 20 sets/week, +2 every completed B+D pair after that.
+// Base is 17 (B=8, D=9), so week-0 adds +3, then +2/week.
+function initChestVolume(){
+  if(!localStorage.getItem('gymlog_vol_start_date')){
+    // Activate from tomorrow so today's workout stays at current sets
+    localStorage.setItem('gymlog_vol_start_date',
+      new Date(Date.now()+24*60*60*1000).toISOString());
+  }
+}
+function getChestExtraSets(key){
+  const startDate=localStorage.getItem('gymlog_vol_start_date');
+  if(!startDate) return 0;
+  const h=loadHistory().filter(e=>e.date>=startDate);
+  const volWeek=Math.min(h.filter(e=>e.key==='B').length, h.filter(e=>e.key==='D').length);
+  const totalExtra=3+volWeek*2; // week 0 → +3 to reach 20; each week +2 more
+  return key==='B'?Math.floor(totalExtra/2):Math.ceil(totalExtra/2);
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
 function convertWeight(val,toUnit){
@@ -987,20 +1032,24 @@ function startWorkout(key){
       }))
     }];
   } else {
+    const chestVolIdx=CHEST_VOL_EX[key];
+    const chestExtra=chestVolIdx!==undefined?getChestExtraSets(key):0;
     setData=w.exercises.map((ex,i)=>{
       const prev=prevLog?prevLog[i]:null;
       const prevSets=prev?prev.sets:null;
       const suggestion=getExerciseSuggestion(prevSets, currentCycleWeek);
-
       const fillWeightKg=getSuggestedWeightKg(prevSets, currentCycleWeek, ex.weight);
       const fillReps=prevSets&&prevSets[0]?prevSets[0].reps:ex.reps;
       const fillWeight=(fillWeightKg*KG_TO_LBS).toFixed(1);
-
+      const setCount=ex.sets+(i===chestVolIdx?chestExtra:0);
+      const volNote=i===chestVolIdx&&chestExtra>0
+        ?{text:`📈 CHEST VOLUME +${chestExtra} SETS (${ex.sets+chestExtra} total)`,color:'#FFC107'}
+        :null;
       return {
         name:ex.name,
-        overload:suggestion,
+        overload:volNote||suggestion,
         prevSets,
-        sets:Array.from({length:ex.sets},()=>({weight:fillWeight,reps:fillReps,done:false}))
+        sets:Array.from({length:setCount},()=>({weight:fillWeight,reps:fillReps,done:false}))
       };
     });
   }
@@ -1425,9 +1474,42 @@ function selectExercise(name){
   updateStats();
 }
 
+// ── Setup Modal (set last completed workout) ───────────────────────────────────
+function openSetupModal(){
+  // Highlight current next-up's predecessor as the likely last done
+  SEQUENCE.forEach(k=>{
+    const btn=document.getElementById('setup-'+k);
+    if(!btn) return;
+    const w=WORKOUTS[k];
+    btn.style.borderColor=w.color+'55';
+    btn.style.color='#888';
+  });
+  document.getElementById('setup-modal').classList.add('open');
+}
+function closeSetupModal(){ document.getElementById('setup-modal').classList.remove('open'); }
+function setLastWorkout(key){
+  recordWorkoutToHistory(key);
+  closeSetupModal();
+  renderWeeklyTracker();
+}
+
+// ── One-time history seed (week of 2026-06-04) ────────────────────────────────
+(function(){
+  if(localStorage.getItem('gymlog_seeded_20260604')) return;
+  const now=Date.now(), day=86400000;
+  const existing=loadHistory().filter(h=>h.date<new Date(now-7*day).toISOString());
+  saveHistory([
+    ...existing,
+    {key:'A',date:new Date(now-6*day).toISOString()},
+    {key:'B',date:new Date(now-4*day).toISOString()},
+    {key:'N',date:new Date(now-2*day).toISOString()},
+    {key:'C',date:new Date(now-1*day).toISOString()},
+  ]);
+  localStorage.setItem('gymlog_seeded_20260604','1');
+})();
+
 // ── Page Load Bootstrap ────────────────────────────────────────────────────────
-// Render weekly tracker on home screen, then check if a workout was in-progress
-// when the tab was killed (restores full state if found).
+initChestVolume();
 renderWeeklyTracker();
 restoreWorkoutProgress();
 </script>
