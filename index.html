@@ -172,6 +172,15 @@ input[type=number]{-moz-appearance:textfield}
 .setup-btn:active{opacity:0.8}
 .setup-cancel{background:none;border:none;color:#333;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;cursor:pointer;display:block;width:100%;text-align:center;margin-top:8px;padding:8px}
 .set-last-btn{background:none;border:none;color:#333;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;display:block;width:100%;text-align:center;margin-top:12px;padding:4px}
+/* RESUME BANNER */
+.resume-banner{display:none;width:100%;max-width:420px;border-radius:18px;border:2px solid;padding:18px 20px 16px;margin-bottom:16px}
+.resume-banner.visible{display:block}
+.resume-banner-label{font-size:9px;font-weight:800;letter-spacing:3px;color:#666;margin-bottom:6px}
+.resume-banner-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;margin-bottom:4px}
+.resume-banner-meta{font-size:11px;color:#555;letter-spacing:1px;margin-bottom:14px}
+.resume-banner-btns{display:flex;gap:10px}
+.resume-btn-go{flex:1;padding:13px;border-radius:12px;font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;cursor:pointer;border:none}
+.resume-btn-discard{padding:13px 16px;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;background:none;border:1px solid #222;color:#444}
 </style>
 </head>
 <body>
@@ -181,6 +190,15 @@ input[type=number]{-moz-appearance:textfield}
   <div class="home-header">
     <div class="app-title">GYM LOG</div>
     <div class="app-sub">CHOOSE YOUR WORKOUT</div>
+  </div>
+  <div class="resume-banner" id="resume-banner">
+    <div class="resume-banner-label">SESSION IN PROGRESS</div>
+    <div class="resume-banner-title" id="resume-banner-title"></div>
+    <div class="resume-banner-meta" id="resume-banner-meta"></div>
+    <div class="resume-banner-btns">
+      <button class="resume-btn-go" id="resume-btn-go" onclick="restoreWorkoutProgress()">▶ RESUME</button>
+      <button class="resume-btn-discard" onclick="discardWorkoutProgress()">DISCARD</button>
+    </div>
   </div>
   <div class="workout-grid">
     <div class="workout-card" id="card-A" style="border-color:#00E5FF22" onclick="startWorkout('A')">
@@ -703,7 +721,38 @@ function saveWorkoutProgress(){
     }));
   }catch(e){}
 }
-function clearWorkoutProgress(){ localStorage.removeItem('gymlog_progress'); }
+function clearWorkoutProgress(){
+  localStorage.removeItem('gymlog_progress');
+  const b=document.getElementById('resume-banner');
+  if(b) b.classList.remove('visible');
+}
+function showResumeBanner(){
+  const raw=localStorage.getItem('gymlog_progress');
+  if(!raw) return;
+  try{
+    const p=JSON.parse(raw);
+    if(!p||!p.key||!WORKOUTS[p.key]||!p.timerStarted){ clearWorkoutProgress(); return; }
+    const w=WORKOUTS[p.key];
+    const color=w.color;
+    const totalSets=p.setData.reduce((a,ex)=>a+ex.sets.length,0);
+    const doneSets=p.setData.reduce((a,ex)=>a+ex.sets.filter(s=>s.done).length,0);
+    const banner=document.getElementById('resume-banner');
+    banner.style.borderColor=color+'55';
+    banner.style.backgroundColor=color+'0d';
+    const titleEl=document.getElementById('resume-banner-title');
+    titleEl.style.color=color;
+    titleEl.textContent=`${p.key} — ${w.title}`;
+    document.getElementById('resume-banner-meta').textContent=
+      `${doneSets} / ${totalSets} SETS DONE  ·  ${fmt(p.elapsed||0)} ELAPSED`;
+    const goBtn=document.getElementById('resume-btn-go');
+    goBtn.style.background=color; goBtn.style.color='#000';
+    banner.classList.add('visible');
+  }catch(e){ clearWorkoutProgress(); }
+}
+function discardWorkoutProgress(){
+  if(!confirm('Discard this session? All progress will be lost.')) return;
+  clearWorkoutProgress();
+}
 
 function restoreWorkoutProgress(){
   const raw=localStorage.getItem('gymlog_progress');
@@ -711,6 +760,8 @@ function restoreWorkoutProgress(){
   try{
     const p=JSON.parse(raw);
     if(!p||!p.key||!WORKOUTS[p.key]) return;
+    const b=document.getElementById('resume-banner');
+    if(b) b.classList.remove('visible');
     currentWorkout=p.key;
     setData=p.setData;
     elapsedSeconds=p.elapsed||0;
@@ -1519,7 +1570,7 @@ function setLastWorkout(key){
 // ── Page Load Bootstrap ────────────────────────────────────────────────────────
 initChestVolume();
 renderWeeklyTracker();
-restoreWorkoutProgress();
+showResumeBanner();
 </script>
 </body>
 </html>
