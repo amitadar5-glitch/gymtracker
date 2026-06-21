@@ -244,7 +244,7 @@ input[type=number]{-moz-appearance:textfield}
   <div class="weekly-section" id="weekly-section"></div>
   <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
   <div class="sync-row">
-    <button class="sync-btn" id="save-btn">↑ SAVE</button>
+    <button class="sync-btn" id="save-btn" onclick="syncToCloud()">↑ SAVE</button>
     <button class="sync-btn" id="load-btn">↓ LOAD</button>
   </div>
 </div>
@@ -697,7 +697,10 @@ const SYNC_KEYS=['gymlog_history','gymlog_workout_count','gymlog_seeded_20260604
 async function syncToCloud(){
   try{
     const payload={};
-    SYNC_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) payload[k]=v; });
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      payload[k]=localStorage.getItem(k);
+    }
     const res=await fetch(BLOB_URL,{
       method:'PUT',
       headers:{'Content-Type':'application/json'},
