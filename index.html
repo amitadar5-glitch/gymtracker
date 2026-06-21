@@ -244,8 +244,8 @@ input[type=number]{-moz-appearance:textfield}
   <div class="weekly-section" id="weekly-section"></div>
   <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
   <div class="sync-row">
-    <button class="sync-btn" id="save-btn" onclick="syncToCloud()">↑ SAVE</button>
-    <button class="sync-btn" id="load-btn" onclick="syncFromCloud()">↓ LOAD</button>
+    <button class="sync-btn" id="copy-btn" onclick="copySyncLink()">↑ COPY</button>
+    <button class="sync-btn" id="paste-btn" onclick="pasteSyncLink()">↓ PASTE</button>
   </div>
 </div>
 
@@ -691,7 +691,7 @@ function showToast(msg, type=''){
 }
 
 // ── Cloud sync (web→PWA handoff via clipboard link) ─────────────────────────────
-async function syncToCloud(){
+async function copySyncLink(){
   try{
     const payload={};
     for(let i=0;i<localStorage.length;i++){
@@ -702,7 +702,7 @@ async function syncToCloud(){
     const url=`${location.origin}${location.pathname}?sync=${encoded}`;
     await navigator.clipboard.writeText(url);
     showToast('SYNC LINK COPIED ✓','ok');
-  }catch(e){ showToast('SYNC SAVE FAILED','err'); }
+  }catch(e){ showToast('SYNC COPY FAILED','err'); }
 }
 
 function applySyncPayload(encoded){
@@ -712,7 +712,7 @@ function applySyncPayload(encoded){
   showResumeBanner();
 }
 
-async function syncFromCloud(){
+async function pasteSyncLink(){
   try{
     const text=await navigator.clipboard.readText();
     const url=new URL(text);
@@ -720,7 +720,7 @@ async function syncFromCloud(){
     if(!encoded){ showToast('NO SYNC LINK FOUND','err'); return; }
     applySyncPayload(encoded);
     showToast('SYNC RESTORED ✓','ok');
-  }catch(e){ showToast('SYNC LOAD FAILED','err'); }
+  }catch(e){ showToast('SYNC PASTE FAILED','err'); }
 }
 
 // ── Storage helpers ────────────────────────────────────────────────────────────
