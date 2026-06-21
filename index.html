@@ -181,9 +181,16 @@ input[type=number]{-moz-appearance:textfield}
 .resume-banner-btns{display:flex;gap:10px}
 .resume-btn-go{flex:1;padding:13px;border-radius:12px;font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;cursor:pointer;border:none}
 .resume-btn-discard{padding:13px 16px;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;background:none;border:1px solid #222;color:#444}
+/* TOAST */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;border:1px solid #2a2a2a;color:#ccc;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;padding:12px 22px;border-radius:14px;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;white-space:nowrap;z-index:9999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:#00E5FF44;color:#00E5FF}
+.toast.err{border-color:#FF2D7844;color:#FF2D78}
 </style>
 </head>
 <body>
+
+<div class="toast" id="toast"></div>
 
 <!-- HOME -->
 <div id="home" class="screen active">
@@ -663,6 +670,51 @@ let restEndTime=null; // for background timer using Date
 
 // Manual timer modal state
 let timerSeconds=0, timerRunning=false, timerInterval=null, timerCountdown=false;
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+let _toastTimer=null;
+function showToast(msg, type=''){
+  const el=document.getElementById('toast');
+  if(!el) return;
+  el.textContent=msg;
+  el.className='toast'+(type?' '+type:'');
+  void el.offsetWidth;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),3500);
+}
+
+// ── Cloud sync (web→PWA handoff via jsonblob) ──────────────────────────────────
+const BLOB_URL='https://jsonblob.com/api/jsonBlob/019eeafc-b313-7fd2-ab36-4d9a4239c007';
+const SYNC_KEYS=['gymlog_history','gymlog_workout_count','gymlog_seeded_20260604','gymlog_vol_start_date'];
+const isPWA=()=>window.matchMedia('(display-mode: standalone)').matches||!!navigator.standalone;
+
+async function syncToCloud(){
+  try{
+    const payload={};
+    SYNC_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) payload[k]=v; });
+    const res=await fetch(BLOB_URL,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(res.ok) showToast('SYNC UPLOADED ✓','ok');
+    else showToast('SYNC UPLOAD FAILED','err');
+  }catch(e){ showToast('SYNC UPLOAD FAILED','err'); }
+}
+
+async function syncFromCloud(){
+  if(localStorage.getItem('gymlog_history')) return; // data already present
+  try{
+    const res=await fetch(BLOB_URL);
+    if(!res.ok){ showToast('SYNC DOWNLOAD FAILED','err'); return; }
+    const payload=await res.json();
+    SYNC_KEYS.forEach(k=>{ if(payload[k]!=null) localStorage.setItem(k,payload[k]); });
+    showToast('SYNC RESTORED ✓','ok');
+    renderWeeklyTracker();
+    showResumeBanner();
+  }catch(e){ showToast('SYNC DOWNLOAD FAILED','err'); }
+}
 
 // ── Storage helpers ────────────────────────────────────────────────────────────
 function saveLog(key, data){ try{ localStorage.setItem('gymlog_'+key, JSON.stringify(data)); }catch(e){} }
@@ -1571,6 +1623,7 @@ function setLastWorkout(key){
 initChestVolume();
 renderWeeklyTracker();
 showResumeBanner();
+if(isPWA()) syncFromCloud(); else syncToCloud();
 </script>
 </body>
 </html>
