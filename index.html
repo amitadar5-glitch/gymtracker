@@ -245,7 +245,7 @@ input[type=number]{-moz-appearance:textfield}
   <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
   <div class="sync-row">
     <button class="sync-btn" id="save-btn" onclick="syncToCloud()">↑ SAVE</button>
-    <button class="sync-btn" id="load-btn">↓ LOAD</button>
+    <button class="sync-btn" id="load-btn" onclick="syncFromCloud()">↓ LOAD</button>
   </div>
 </div>
 
@@ -690,38 +690,37 @@ function showToast(msg, type=''){
   _toastTimer=setTimeout(()=>el.classList.remove('show'),3500);
 }
 
-// ── Cloud sync (web→PWA handoff via jsonblob) ──────────────────────────────────
-const BLOB_URL='https://jsonblob.com/api/jsonBlob/019eeafc-b313-7fd2-ab36-4d9a4239c007';
-const SYNC_KEYS=['gymlog_history','gymlog_workout_count','gymlog_seeded_20260604','gymlog_vol_start_date'];
-
+// ── Cloud sync (web→PWA handoff via clipboard link) ─────────────────────────────
 async function syncToCloud(){
   try{
     const payload={};
     for(let i=0;i<localStorage.length;i++){
       const k=localStorage.key(i);
-      payload[k]=localStorage.getItem(k);
+      if(k.startsWith('gymlog_')) payload[k]=localStorage.getItem(k);
     }
-    const res=await fetch(BLOB_URL,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-    if(res.ok) showToast('SYNC UPLOADED ✓','ok');
-    else showToast('SYNC UPLOAD FAILED','err');
-  }catch(e){ showToast('SYNC UPLOAD FAILED','err'); }
+    const encoded=btoa(encodeURIComponent(JSON.stringify(payload)));
+    const url=`${location.origin}${location.pathname}?sync=${encoded}`;
+    await navigator.clipboard.writeText(url);
+    showToast('SYNC LINK COPIED ✓','ok');
+  }catch(e){ showToast('SYNC SAVE FAILED','err'); }
+}
+
+function applySyncPayload(encoded){
+  const payload=JSON.parse(decodeURIComponent(atob(encoded)));
+  Object.keys(payload).forEach(k=>localStorage.setItem(k,payload[k]));
+  renderWeeklyTracker();
+  showResumeBanner();
 }
 
 async function syncFromCloud(){
-  if(localStorage.getItem('gymlog_history')) return; // data already present
   try{
-    const res=await fetch(BLOB_URL);
-    if(!res.ok){ showToast('SYNC DOWNLOAD FAILED','err'); return; }
-    const payload=await res.json();
-    SYNC_KEYS.forEach(k=>{ if(payload[k]!=null) localStorage.setItem(k,payload[k]); });
+    const text=await navigator.clipboard.readText();
+    const url=new URL(text);
+    const encoded=url.searchParams.get('sync');
+    if(!encoded){ showToast('NO SYNC LINK FOUND','err'); return; }
+    applySyncPayload(encoded);
     showToast('SYNC RESTORED ✓','ok');
-    renderWeeklyTracker();
-    showResumeBanner();
-  }catch(e){ showToast('SYNC DOWNLOAD FAILED','err'); }
+  }catch(e){ showToast('SYNC LOAD FAILED','err'); }
 }
 
 // ── Storage helpers ────────────────────────────────────────────────────────────
