@@ -235,7 +235,7 @@ input[type=number]{-moz-appearance:textfield}
     <div class="workout-card" id="card-D" style="border-color:#FF2D7822" onclick="startWorkout('D')">
       <div class="workout-card-letter" style="color:#FF2D78">D</div>
       <div class="workout-card-title">CHEST & LEGS</div>
-      <div class="workout-card-sub" id="sub-D">7 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-D">6 EXERCISES</div>
       <div class="workout-card-bar" style="background:#FF2D78"></div>
     </div>
   </div>
@@ -253,6 +253,10 @@ input[type=number]{-moz-appearance:textfield}
     <button class="setup-btn" id="setup-N" onclick="setLastWorkout('N')">N — NORWEGIAN 4×4</button>
     <button class="setup-btn" id="setup-C" onclick="setLastWorkout('C')">C — BACK & SHOULDERS</button>
     <button class="setup-btn" id="setup-D" onclick="setLastWorkout('D')">D — CHEST & LEGS</button>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #1a1a1a">
+      <div style="font-size:9px;font-weight:800;letter-spacing:3px;color:#333;margin-bottom:10px">CYCLE</div>
+      <button class="setup-btn" onclick="resetCycle()" style="color:#FF2D78;border-color:#FF2D7833">RESET TO WEEK 1 (NEW CYCLE)</button>
+    </div>
     <button class="setup-cancel" onclick="closeSetupModal()">CANCEL</button>
   </div>
 </div>
@@ -550,7 +554,7 @@ const WORKOUTS = {
       {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
       {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
       {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
-      {name:'Incline DB Curl',sets:3,reps:'10',weight:'14'},
+      {name:'Incline DB Curl',sets:4,reps:'10',weight:'14'},
     ],
     mobility:[
       {name:'Wall Shoulder Circles',duration:'45 sec',
@@ -577,7 +581,7 @@ const WORKOUTS = {
       {name:'Low to High Cable Flys (Upper Chest)',sets:3,reps:'9',weight:'20'},
       {name:'Wide Grip Lat Pulldown',sets:3,reps:'7',weight:'70'},
       {name:'Seated Cable Row',sets:3,reps:'9',weight:'60'},
-      {name:'Cross Cable Tricep Kickback',sets:3,reps:'8',weight:'15'},
+      {name:'Cross Cable Pushdown (Triceps)',sets:3,reps:'8',weight:'15'},
       {name:'Incline DB Curl',sets:3,reps:'10',weight:'14'},
     ],
     mobility:[
@@ -602,10 +606,10 @@ const WORKOUTS = {
     exercises:[
       {name:'Chest Supported Row',sets:3,reps:'10',weight:'32'},
       {name:'T-Bar Row',sets:3,reps:'9',weight:'40'},
+      {name:'Deadlift',sets:3,reps:'5',weight:'100'},
       {name:'Machine Shoulder Press',sets:3,reps:'10',weight:'34'},
       {name:'Chest Supported DB Lateral Raises',sets:3,reps:'7',weight:'10'},
       {name:'Cable Pushdown (Triceps)',sets:3,reps:'8',weight:'57.5'},
-      {name:'Deadlift',sets:3,reps:'5',weight:'100'},
     ],
     mobility:[
       {name:"Child's Pose with Lat Stretch",duration:'45 sec each side',
@@ -627,10 +631,9 @@ const WORKOUTS = {
       {name:'Machine Chest Press',sets:3,reps:'9',weight:'57'},
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
       {name:'Machine Pec Deck Flys',sets:3,reps:'9',weight:'57'},
-      {name:'Cyclist Squat',sets:3,reps:'12',weight:'0'},
-      {name:'Petersen Step Down',sets:3,reps:'10',weight:'0'},
       {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
-      {name:'Farmer Carry',sets:3,reps:'40m',weight:'32'},
+      {name:'Cyclist Squat',sets:3,reps:'12',weight:'0'},
+      {name:'Cable Bicep Curl',sets:3,reps:'10',weight:'20'},
     ],
     mobility:[
       {name:'Hip Circles',duration:'45 sec each direction',
@@ -1078,13 +1081,14 @@ function getChestExtraSets(key){
   const totalExtra=3+volWeek*2;
   return key==='B'?Math.floor(totalExtra/2):Math.ceil(totalExtra/2);
 }
-function chestExtraSetsForExercise(key, exIdx, totalExtra){
+function chestExtraSetsForExercise(key, exIdx, totalExtra, baseSets){
   const idxs=CHEST_VOL_EX[key];
   if(!idxs) return 0;
   const pos=idxs.indexOf(exIdx);
   if(pos===-1) return 0;
   const n=idxs.length;
-  return Math.floor(totalExtra/n)+(pos<(totalExtra%n)?1:0);
+  const raw=Math.floor(totalExtra/n)+(pos<(totalExtra%n)?1:0);
+  return Math.min(raw, Math.max(0, 4-(baseSets||0)));
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -1151,7 +1155,7 @@ function startWorkout(key){
       const fillWeightKg=getSuggestedWeightKg(prevSets, currentCycleWeek, ex.weight);
       const fillReps=prevSets&&prevSets[0]?prevSets[0].reps:ex.reps;
       const fillWeight=(fillWeightKg*KG_TO_LBS).toFixed(1);
-      const extraSets=chestExtraSetsForExercise(key,i,totalChestExtra);
+      const extraSets=chestExtraSetsForExercise(key,i,totalChestExtra,ex.sets);
       const setCount=ex.sets+extraSets;
       const volNote=extraSets>0
         ?{text:`📈 CHEST VOL +${extraSets} SET${extraSets>1?'S':''} (${ex.sets+extraSets} total)`,color:'#FFC107'}
@@ -1269,8 +1273,8 @@ function renderExercises(deload){
 
     let setsHTML=`<div class="set-cols">
       <div class="col-hdr">${isIntervalEx?'INT':'SET'}</div>
-      <div class="col-hdr col-unit">${isIntervalEx?'KM/H':currentUnit.toUpperCase()}</div>
-      <div class="col-hdr">${isIntervalEx?'INCL%':'REPS'}</div>
+      <div class="col-hdr col-unit">${isIntervalEx?'SPEED (KM/H)':currentUnit.toUpperCase()}</div>
+      <div class="col-hdr">${isIntervalEx?'INCLINE %':'REPS'}</div>
       <div class="col-hdr">✓</div>
     </div>`;
 
@@ -1602,6 +1606,12 @@ function setLastWorkout(key){
   recordWorkoutToHistory(key);
   closeSetupModal();
   renderWeeklyTracker();
+}
+function resetCycle(){
+  if(!confirm('Reset to Week 1? This clears the progressive overload counter.')) return;
+  localStorage.setItem('gymlog_workout_count','0');
+  closeSetupModal();
+  showToast('CYCLE RESET — WEEK 1','ok');
 }
 
 // ── One-time history seed (week of 2026-06-04) ────────────────────────────────
