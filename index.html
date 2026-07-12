@@ -16,7 +16,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',
 .screen.active{display:flex}
 
 /* HOME */
-#home{align-items:center;justify-content:center;padding:24px 20px max(24px,env(safe-area-inset-bottom)) 20px;overflow-y:auto}
+#home{align-items:center;justify-content:center;padding:24px 20px}
 .home-header{text-align:center;margin-bottom:44px}
 .app-title{font-family:'Bebas Neue',cursive;font-size:64px;letter-spacing:10px;color:#fff;line-height:1}
 .app-sub{font-size:11px;color:var(--muted);letter-spacing:4px;margin-top:6px}
@@ -172,8 +172,6 @@ input[type=number]{-moz-appearance:textfield}
 .setup-btn:active{opacity:0.8}
 .setup-cancel{background:none;border:none;color:#333;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;cursor:pointer;display:block;width:100%;text-align:center;margin-top:8px;padding:8px}
 .set-last-btn{background:none;border:none;color:#333;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;display:block;width:100%;text-align:center;margin-top:12px;padding:4px}
-.sync-row{display:flex;gap:10px;margin-top:10px;margin-bottom:max(8px,env(safe-area-inset-bottom));width:100%;max-width:420px}
-.sync-btn{flex:1;background:none;border:1px solid #1a1a1a;color:#444;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;padding:8px;border-radius:10px}
 /* RESUME BANNER */
 .resume-banner{display:none;width:100%;max-width:420px;border-radius:18px;border:2px solid;padding:18px 20px 16px;margin-bottom:16px}
 .resume-banner.visible{display:block}
@@ -237,16 +235,12 @@ input[type=number]{-moz-appearance:textfield}
     <div class="workout-card" id="card-D" style="border-color:#FF2D7822" onclick="startWorkout('D')">
       <div class="workout-card-letter" style="color:#FF2D78">D</div>
       <div class="workout-card-title">CHEST & LEGS</div>
-      <div class="workout-card-sub" id="sub-D">7 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-D">6 EXERCISES</div>
       <div class="workout-card-bar" style="background:#FF2D78"></div>
     </div>
   </div>
   <div class="weekly-section" id="weekly-section"></div>
   <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
-  <div class="sync-row">
-    <button class="sync-btn" id="copy-btn" onclick="copySyncLink()">↑ COPY</button>
-    <button class="sync-btn" id="paste-btn" onclick="pasteSyncLink()">↓ PASTE</button>
-  </div>
 </div>
 
 <!-- SETUP MODAL -->
@@ -259,6 +253,10 @@ input[type=number]{-moz-appearance:textfield}
     <button class="setup-btn" id="setup-N" onclick="setLastWorkout('N')">N — NORWEGIAN 4×4</button>
     <button class="setup-btn" id="setup-C" onclick="setLastWorkout('C')">C — BACK & SHOULDERS</button>
     <button class="setup-btn" id="setup-D" onclick="setLastWorkout('D')">D — CHEST & LEGS</button>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #1a1a1a">
+      <div style="font-size:9px;font-weight:800;letter-spacing:3px;color:#333;margin-bottom:10px">CYCLE</div>
+      <button class="setup-btn" onclick="resetCycle()" style="color:#FF2D78;border-color:#FF2D7833">RESET TO WEEK 1 (NEW CYCLE)</button>
+    </div>
     <button class="setup-cancel" onclick="closeSetupModal()">CANCEL</button>
   </div>
 </div>
@@ -556,7 +554,7 @@ const WORKOUTS = {
       {name:'Cable Woodchop',sets:3,reps:'10',weight:'15'},
       {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'8',weight:'37.5'},
       {name:'Cable Pushdown (Triceps)',sets:3,reps:'9',weight:'57.5'},
-      {name:'Incline DB Curl',sets:3,reps:'10',weight:'14'},
+      {name:'Incline DB Curl',sets:4,reps:'10',weight:'14'},
     ],
     mobility:[
       {name:'Wall Shoulder Circles',duration:'45 sec',
@@ -583,7 +581,7 @@ const WORKOUTS = {
       {name:'Low to High Cable Flys (Upper Chest)',sets:3,reps:'9',weight:'20'},
       {name:'Wide Grip Lat Pulldown',sets:3,reps:'7',weight:'70'},
       {name:'Seated Cable Row',sets:3,reps:'9',weight:'60'},
-      {name:'Cross Cable Tricep Kickback',sets:3,reps:'8',weight:'15'},
+      {name:'Cross Cable Pushdown (Triceps)',sets:3,reps:'8',weight:'15'},
       {name:'Incline DB Curl',sets:3,reps:'10',weight:'14'},
     ],
     mobility:[
@@ -608,10 +606,10 @@ const WORKOUTS = {
     exercises:[
       {name:'Chest Supported Row',sets:3,reps:'10',weight:'32'},
       {name:'T-Bar Row',sets:3,reps:'9',weight:'40'},
+      {name:'Deadlift',sets:3,reps:'5',weight:'100'},
       {name:'Machine Shoulder Press',sets:3,reps:'10',weight:'34'},
       {name:'Chest Supported DB Lateral Raises',sets:3,reps:'7',weight:'10'},
       {name:'Cable Pushdown (Triceps)',sets:3,reps:'8',weight:'57.5'},
-      {name:'Deadlift',sets:3,reps:'5',weight:'100'},
     ],
     mobility:[
       {name:"Child's Pose with Lat Stretch",duration:'45 sec each side',
@@ -633,10 +631,9 @@ const WORKOUTS = {
       {name:'Machine Chest Press',sets:3,reps:'9',weight:'57'},
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
       {name:'Machine Pec Deck Flys',sets:3,reps:'9',weight:'57'},
-      {name:'Cyclist Squat',sets:3,reps:'12',weight:'0'},
-      {name:'Petersen Step Down',sets:3,reps:'10',weight:'0'},
       {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
-      {name:'Farmer Carry',sets:3,reps:'40m',weight:'32'},
+      {name:'Cyclist Squat',sets:3,reps:'12',weight:'0'},
+      {name:'Cable Bicep Curl',sets:3,reps:'10',weight:'20'},
     ],
     mobility:[
       {name:'Hip Circles',duration:'45 sec each direction',
@@ -690,37 +687,36 @@ function showToast(msg, type=''){
   _toastTimer=setTimeout(()=>el.classList.remove('show'),3500);
 }
 
-// ── Cloud sync (web→PWA handoff via clipboard link) ─────────────────────────────
-async function copySyncLink(){
+// ── Cloud sync (web→PWA handoff via jsonblob) ──────────────────────────────────
+const BLOB_URL='https://jsonblob.com/api/jsonBlob/019eeafc-b313-7fd2-ab36-4d9a4239c007';
+const SYNC_KEYS=['gymlog_history','gymlog_workout_count','gymlog_seeded_20260604','gymlog_vol_start_date'];
+const isPWA=()=>window.matchMedia('(display-mode: standalone)').matches||!!navigator.standalone;
+
+async function syncToCloud(){
   try{
     const payload={};
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k.startsWith('gymlog_')) payload[k]=localStorage.getItem(k);
-    }
-    const encoded=btoa(encodeURIComponent(JSON.stringify(payload)));
-    const url=`${location.origin}${location.pathname}?sync=${encoded}`;
-    await navigator.clipboard.writeText(url);
-    showToast('SYNC LINK COPIED ✓','ok');
-  }catch(e){ showToast('SYNC COPY FAILED','err'); }
+    SYNC_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) payload[k]=v; });
+    const res=await fetch(BLOB_URL,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(res.ok) showToast('SYNC UPLOADED ✓','ok');
+    else showToast('SYNC UPLOAD FAILED','err');
+  }catch(e){ showToast('SYNC UPLOAD FAILED','err'); }
 }
 
-function applySyncPayload(encoded){
-  const payload=JSON.parse(decodeURIComponent(atob(encoded)));
-  Object.keys(payload).forEach(k=>localStorage.setItem(k,payload[k]));
-  renderWeeklyTracker();
-  showResumeBanner();
-}
-
-async function pasteSyncLink(){
+async function syncFromCloud(){
+  if(localStorage.getItem('gymlog_history')) return; // data already present
   try{
-    const text=await navigator.clipboard.readText();
-    const url=new URL(text);
-    const encoded=url.searchParams.get('sync');
-    if(!encoded){ showToast('NO SYNC LINK FOUND','err'); return; }
-    applySyncPayload(encoded);
+    const res=await fetch(BLOB_URL);
+    if(!res.ok){ showToast('SYNC DOWNLOAD FAILED','err'); return; }
+    const payload=await res.json();
+    SYNC_KEYS.forEach(k=>{ if(payload[k]!=null) localStorage.setItem(k,payload[k]); });
     showToast('SYNC RESTORED ✓','ok');
-  }catch(e){ showToast('SYNC PASTE FAILED','err'); }
+    renderWeeklyTracker();
+    showResumeBanner();
+  }catch(e){ showToast('SYNC DOWNLOAD FAILED','err'); }
 }
 
 // ── Storage helpers ────────────────────────────────────────────────────────────
@@ -1085,13 +1081,14 @@ function getChestExtraSets(key){
   const totalExtra=3+volWeek*2;
   return key==='B'?Math.floor(totalExtra/2):Math.ceil(totalExtra/2);
 }
-function chestExtraSetsForExercise(key, exIdx, totalExtra){
+function chestExtraSetsForExercise(key, exIdx, totalExtra, baseSets){
   const idxs=CHEST_VOL_EX[key];
   if(!idxs) return 0;
   const pos=idxs.indexOf(exIdx);
   if(pos===-1) return 0;
   const n=idxs.length;
-  return Math.floor(totalExtra/n)+(pos<(totalExtra%n)?1:0);
+  const raw=Math.floor(totalExtra/n)+(pos<(totalExtra%n)?1:0);
+  return Math.min(raw, Math.max(0, 4-(baseSets||0)));
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -1158,7 +1155,7 @@ function startWorkout(key){
       const fillWeightKg=getSuggestedWeightKg(prevSets, currentCycleWeek, ex.weight);
       const fillReps=prevSets&&prevSets[0]?prevSets[0].reps:ex.reps;
       const fillWeight=(fillWeightKg*KG_TO_LBS).toFixed(1);
-      const extraSets=chestExtraSetsForExercise(key,i,totalChestExtra);
+      const extraSets=chestExtraSetsForExercise(key,i,totalChestExtra,ex.sets);
       const setCount=ex.sets+extraSets;
       const volNote=extraSets>0
         ?{text:`📈 CHEST VOL +${extraSets} SET${extraSets>1?'S':''} (${ex.sets+extraSets} total)`,color:'#FFC107'}
@@ -1276,8 +1273,8 @@ function renderExercises(deload){
 
     let setsHTML=`<div class="set-cols">
       <div class="col-hdr">${isIntervalEx?'INT':'SET'}</div>
-      <div class="col-hdr col-unit">${isIntervalEx?'KM/H':currentUnit.toUpperCase()}</div>
-      <div class="col-hdr">${isIntervalEx?'INCL%':'REPS'}</div>
+      <div class="col-hdr col-unit">${isIntervalEx?'SPEED (KM/H)':currentUnit.toUpperCase()}</div>
+      <div class="col-hdr">${isIntervalEx?'INCLINE %':'REPS'}</div>
       <div class="col-hdr">✓</div>
     </div>`;
 
@@ -1610,6 +1607,12 @@ function setLastWorkout(key){
   closeSetupModal();
   renderWeeklyTracker();
 }
+function resetCycle(){
+  if(!confirm('Reset to Week 1? This clears the progressive overload counter.')) return;
+  localStorage.setItem('gymlog_workout_count','0');
+  closeSetupModal();
+  showToast('CYCLE RESET — WEEK 1','ok');
+}
 
 // ── One-time history seed (week of 2026-06-04) ────────────────────────────────
 (function(){
@@ -1630,6 +1633,7 @@ function setLastWorkout(key){
 initChestVolume();
 renderWeeklyTracker();
 showResumeBanner();
+if(isPWA()) syncFromCloud(); else syncToCloud();
 </script>
 </body>
 </html>
