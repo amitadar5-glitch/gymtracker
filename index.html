@@ -241,6 +241,7 @@ input[type=number]{-moz-appearance:textfield}
   </div>
   <div class="weekly-section" id="weekly-section"></div>
   <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
+  <button class="set-last-btn" onclick="resetCycle()" style="color:#FF2D78;margin-top:2px">RESET TO WEEK 1 (NEW CYCLE)</button>
 </div>
 
 <!-- SETUP MODAL -->
@@ -253,10 +254,6 @@ input[type=number]{-moz-appearance:textfield}
     <button class="setup-btn" id="setup-N" onclick="setLastWorkout('N')">N — NORWEGIAN 4×4</button>
     <button class="setup-btn" id="setup-C" onclick="setLastWorkout('C')">C — BACK & SHOULDERS</button>
     <button class="setup-btn" id="setup-D" onclick="setLastWorkout('D')">D — CHEST & LEGS</button>
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #1a1a1a">
-      <div style="font-size:9px;font-weight:800;letter-spacing:3px;color:#333;margin-bottom:10px">CYCLE</div>
-      <button class="setup-btn" onclick="resetCycle()" style="color:#FF2D78;border-color:#FF2D7833">RESET TO WEEK 1 (NEW CYCLE)</button>
-    </div>
     <button class="setup-cancel" onclick="closeSetupModal()">CANCEL</button>
   </div>
 </div>
