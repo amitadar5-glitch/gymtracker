@@ -101,6 +101,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',
 .workout-footer.visible{display:flex}
 .footer-btn{flex:1;padding:16px;border-radius:14px;font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:2px;cursor:pointer;border:none;transition:opacity 0.2s}
 .footer-btn:active{opacity:0.8}
+.end-workout-wrap{padding:8px 0 28px}
+.end-workout-inline{width:100%;padding:18px;border-radius:16px;font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:2px;cursor:pointer;border:2px solid;transition:opacity 0.2s}
+.end-workout-inline:active{opacity:0.7}
 
 /* LIBRARY MODAL */
 .library-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:1000;align-items:flex-end;justify-content:center}
@@ -191,6 +194,8 @@ input[type=number]{-moz-appearance:textfield}
 <body>
 
 <div class="toast" id="toast"></div>
+<input type="file" id="garmin-file" accept=".tcx,.gpx,.xml,text/xml,application/xml"
+  style="display:none" onchange="handleGarminFile(this)">
 
 <!-- HOME -->
 <div id="home" class="screen active">
@@ -258,6 +263,18 @@ input[type=number]{-moz-appearance:textfield}
   </div>
 </div>
 
+<!-- SWAP SCOPE MODAL -->
+<div class="setup-overlay" id="swap-modal">
+  <div class="setup-box">
+    <div class="setup-title">SWAP EXERCISE</div>
+    <div class="setup-sub" id="swap-modal-sub"></div>
+    <div id="swap-prev-box"></div>
+    <button class="setup-btn" onclick="confirmSwap(false)">JUST THIS SESSION</button>
+    <button class="setup-btn" onclick="confirmSwap(true)">MAKE IT PERMANENT</button>
+    <button class="setup-cancel" onclick="cancelSwap()">CANCEL</button>
+  </div>
+</div>
+
 <!-- WORKOUT -->
 <div id="workout" class="screen">
   <div class="header">
@@ -314,7 +331,7 @@ input[type=number]{-moz-appearance:textfield}
   <div class="scroll-area" id="exercise-list"></div>
   <div class="workout-footer visible" id="workout-footer">
     <button class="footer-btn" id="start-workout-btn" onclick="beginWorkout()">START WORKOUT</button>
-    <button class="footer-btn" id="end-workout-btn" onclick="endWorkout()" style="display:none">END WORKOUT</button>
+    <button class="footer-btn" id="leave-workout-btn" onclick="goHome()" style="display:none">‹ HOME — SESSION KEPT</button>
   </div>
 </div>
 
@@ -360,6 +377,7 @@ const SEQUENCE = ['A','B','N','C','D'];       // full weekly rotation
 const STRENGTH_KEYS = new Set(['A','B','C','D']); // count toward progressive overload cycle
 // Chest volume progression: key → indices of chest exercises that share extra sets
 const CHEST_VOL_EX = {B:[0,1,2], D:[0,1,2]};
+const CHEST_MAX_SETS = 3; // hard cap: never more than 3 sets on any chest exercise
 
 // Week-by-week RIR (Reps In Reserve) targets — index 0 = Week 1, index 8 = Deload
 // rir array: [set1, set2, set3]; 0 = go to failure, 'deload' = special
@@ -537,7 +555,130 @@ const EXERCISE_LIBRARY = [
   {name:'Kettlebell Swing',muscle:'Full Body'},
   {name:'Power Clean',muscle:'Full Body'},
   {name:'Clean & Press',muscle:'Full Body'},
+  // ── CHEST (additions) ──
+  {name:'Incline DB Bench Press',muscle:'Chest'},
+  {name:'Flat DB Bench Press',muscle:'Chest'},
+  {name:'Decline Barbell Bench Press',muscle:'Chest'},
+  {name:'Decline DB Press',muscle:'Chest'},
+  {name:'Smith Machine Flat Press',muscle:'Chest'},
+  {name:'Incline Machine Chest Press',muscle:'Chest'},
+  {name:'Cable Chest Press (Standing)',muscle:'Chest'},
+  {name:'High to Low Cable Flys',muscle:'Chest'},
+  {name:'Mid Cable Flys',muscle:'Chest'},
+  {name:'Incline DB Flys',muscle:'Chest'},
+  {name:'Weighted Dips (Chest Lean)',muscle:'Chest'},
+  {name:'Push-Up',muscle:'Chest'},
+  {name:'Deficit Push-Up',muscle:'Chest'},
+  {name:'Svend Press',muscle:'Chest'},
+  // ── BACK (additions) ──
+  {name:'Deadlift',muscle:'Back'},
+  {name:'Trap Bar Deadlift',muscle:'Back'},
+  {name:'Rack Pull',muscle:'Back'},
+  {name:'Deficit Deadlift',muscle:'Back'},
+  {name:'T-Bar Row',muscle:'Back'},
+  {name:'Barbell Bent-Over Row',muscle:'Back'},
+  {name:'Pendlay Row',muscle:'Back'},
+  {name:'Single Arm DB Row',muscle:'Back'},
+  {name:'Meadows Row',muscle:'Back'},
+  {name:'Seal Row',muscle:'Back'},
+  {name:'Neutral Grip Lat Pulldown',muscle:'Back'},
+  {name:'Reverse Grip Lat Pulldown',muscle:'Back'},
+  {name:'Single Arm Lat Pulldown',muscle:'Back'},
+  {name:'Pull-Up',muscle:'Back'},
+  {name:'Chin-Up',muscle:'Back'},
+  {name:'Assisted Pull-Up Machine',muscle:'Back'},
+  {name:'Straight Arm Cable Pulldown',muscle:'Back'},
+  {name:'Machine High Row',muscle:'Back'},
+  {name:'Back Extension (45 Degrees)',muscle:'Back'},
+  {name:'Good Morning',muscle:'Back'},
+  {name:'Barbell Shrug',muscle:'Back'},
+  {name:'DB Shrug',muscle:'Back'},
+  // ── SHOULDERS (additions) ──
+  {name:'DB Shoulder Press',muscle:'Shoulders'},
+  {name:'Machine Shoulder Press',muscle:'Shoulders'},
+  {name:'Seated Barbell Overhead Press',muscle:'Shoulders'},
+  {name:'Standing Overhead Press',muscle:'Shoulders'},
+  {name:'Arnold Press',muscle:'Shoulders'},
+  {name:'Push Press',muscle:'Shoulders'},
+  {name:'Cable Lateral Raises',muscle:'Shoulders'},
+  {name:'Machine Lateral Raise',muscle:'Shoulders'},
+  {name:'Chest Supported DB Lateral Raises',muscle:'Shoulders'},
+  {name:'Incline DB Lateral Raises',muscle:'Shoulders'},
+  {name:'Standing Cable Rear Delt Fly',muscle:'Shoulders'},
+  {name:'Reverse Pec Deck',muscle:'Shoulders'},
+  {name:'Bent-Over DB Rear Delt Fly',muscle:'Shoulders'},
+  {name:'Cable Face Pull (Rope)',muscle:'Shoulders'},
+  // ── LEGS (additions) ──
+  {name:'Back Squat',muscle:'Legs'},
+  {name:'Cyclist Squat',muscle:'Legs'},
+  {name:'Smith Machine Squat',muscle:'Legs'},
+  {name:'Safety Bar Squat',muscle:'Legs'},
+  {name:'Paused Squat',muscle:'Legs'},
+  {name:'Horizontal Leg Press',muscle:'Legs'},
+  {name:'Single Leg Press',muscle:'Legs'},
+  {name:'Single Leg Extension',muscle:'Legs'},
+  {name:'Seated Hamstring Curl (Single Leg)',muscle:'Legs'},
+  {name:'Standing Hamstring Curl',muscle:'Legs'},
+  {name:'Barbell Romanian Deadlift',muscle:'Legs'},
+  {name:'DB Romanian Deadlift',muscle:'Legs'},
+  {name:'Single Leg Romanian Deadlift',muscle:'Legs'},
+  {name:'Reverse Nordic Curl',muscle:'Legs'},
+  {name:'Sissy Squat',muscle:'Legs'},
+  {name:'Heel Elevated Goblet Squat',muscle:'Legs'},
+  {name:'Deficit Reverse Lunge',muscle:'Legs'},
+  {name:'Walking Lunge (DB)',muscle:'Legs'},
+  {name:'Curtsy Lunge',muscle:'Legs'},
+  {name:'Leg Press Calf Raise',muscle:'Legs'},
+  {name:'Smith Machine Calf Raise',muscle:'Legs'},
+  // ── BICEPS (additions) ──
+  {name:'Cable Rope Hammer Curl',muscle:'Biceps'},
+  {name:'Incline Cable Curl',muscle:'Biceps'},
+  {name:'Bayesian Cable Curl',muscle:'Biceps'},
+  {name:'Reverse Barbell Curl',muscle:'Biceps'},
+  {name:'Cross Body Hammer Curl',muscle:'Biceps'},
+  {name:'21s (Barbell Curl)',muscle:'Biceps'},
+  // ── TRICEPS (additions) ──
+  {name:'Cross Cable Pushdown (Triceps)',muscle:'Triceps'},
+  {name:'Straight Bar Pushdown',muscle:'Triceps'},
+  {name:'V-Bar Pushdown',muscle:'Triceps'},
+  {name:'Single Arm Cable Pushdown',muscle:'Triceps'},
+  {name:'Weighted Dips (Upright)',muscle:'Triceps'},
+  {name:'Bench Dips',muscle:'Triceps'},
+  {name:'Cable Overhead Rope Extension',muscle:'Triceps'},
+  {name:'Incline Skull Crushers',muscle:'Triceps'},
+  // ── CORE (additions) ──
+  {name:'Hanging Windshield Wipers',muscle:'Core'},
+  {name:'Cable Pallof Press (Half Kneeling)',muscle:'Core'},
+  {name:'Machine Ab Crunch',muscle:'Core'},
+  {name:'Reverse Crunch',muscle:'Core'},
+  {name:'Bicycle Crunch',muscle:'Core'},
+  {name:'V-Up',muscle:'Core'},
+  {name:'Hollow Body Hold',muscle:'Core'},
+  {name:'Copenhagen Plank',muscle:'Core'},
+  {name:'L-Sit Hold',muscle:'Core'},
+  // ── FULL BODY / CONDITIONING (additions) ──
+  {name:'Assault Bike Intervals',muscle:'Full Body'},
+  {name:'Rowing Machine Intervals',muscle:'Full Body'},
+  {name:'Ski Erg',muscle:'Full Body'},
+  {name:'Jump Rope',muscle:'Full Body'},
+  {name:'Turkish Get-Up',muscle:'Full Body'},
+  {name:'Kettlebell Clean & Jerk',muscle:'Full Body'},
+  {name:'Medicine Ball Slam',muscle:'Full Body'},
+  {name:'Burpee',muscle:'Full Body'},
 ];
+
+// Drop duplicate names (first occurrence wins) and sort alphabetically inside the list
+(function dedupeLibrary(){
+  const seen=new Set();
+  const out=[];
+  EXERCISE_LIBRARY.forEach(ex=>{
+    const k=ex.name.toLowerCase();
+    if(seen.has(k)) return;
+    seen.add(k); out.push(ex);
+  });
+  EXERCISE_LIBRARY.length=0;
+  EXERCISE_LIBRARY.push(...out);
+})();
 
 const MUSCLE_GROUPS = ['All','Chest','Back','Shoulders','Biceps','Triceps','Legs','Core','Full Body'];
 
@@ -610,7 +751,7 @@ const WORKOUTS = {
       {name:'Chest Supported Row',sets:3,reps:'10',weight:'32'},
       {name:'T-Bar Row',sets:3,reps:'9',weight:'40'},
       {name:'Deadlift',sets:3,reps:'5',weight:'100'},
-      {name:'Machine Shoulder Press',sets:3,reps:'10',weight:'34'},
+      {name:'DB Shoulder Press',sets:3,reps:'10',weight:'20'},
       {name:'Chest Supported DB Lateral Raises',sets:3,reps:'7',weight:'10'},
       {name:'Cable Pushdown (Triceps)',sets:3,reps:'8',weight:'57.5'},
     ],
@@ -644,7 +785,7 @@ const WORKOUTS = {
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60'},
       {name:'Machine Pec Deck Flys',sets:3,reps:'9',weight:'57'},
       {name:'Leg Extension (Quad)',sets:3,reps:'10',weight:'79'},
-      {name:'Cyclist Squat',sets:3,reps:'12',weight:'0'},
+      {name:'Back Squat',sets:3,reps:'8',weight:'60'},
       {name:'Cable Bicep Curl',sets:3,reps:'10',weight:'20'},
     ],
     mobility:[
@@ -750,6 +891,25 @@ async function syncFromCloud(){
 // ── Storage helpers ────────────────────────────────────────────────────────────
 function saveLog(key, data){ try{ localStorage.setItem('gymlog_'+key, JSON.stringify(data)); }catch(e){} }
 function loadLog(key){ try{ const d=localStorage.getItem('gymlog_'+key); return d?JSON.parse(d):null; }catch(e){return null;} }
+
+// Per-exercise history, keyed by exercise NAME — survives swaps and slot reordering
+function loadExHist(){ try{ const d=localStorage.getItem('gymlog_ex_hist'); return d?JSON.parse(d):{}; }catch(e){return {};} }
+function saveExHist(h){ try{ localStorage.setItem('gymlog_ex_hist',JSON.stringify(h)); }catch(e){} }
+function getExPrevSets(name){ const h=loadExHist(); return h[name]?h[name].sets:null; }
+function getExPrevDate(name){ const h=loadExHist(); return h[name]?h[name].date:null; }
+function recordExHist(log){
+  const h=loadExHist();
+  const date=new Date().toISOString();
+  log.forEach(ex=>{ h[ex.name]={sets:ex.sets, date}; });
+  saveExHist(h);
+}
+
+// Permanent exercise swaps: "<workoutKey>:<slotIndex>" → exercise name
+function loadOverrides(){ try{ const d=localStorage.getItem('gymlog_overrides'); return d?JSON.parse(d):{}; }catch(e){return {};} }
+function saveOverrides(o){ try{ localStorage.setItem('gymlog_overrides',JSON.stringify(o)); }catch(e){} }
+function setOverride(key,idx,name){ const o=loadOverrides(); o[key+':'+idx]=name; saveOverrides(o); }
+function getOverride(key,idx){ return loadOverrides()[key+':'+idx]||null; }
+function clearOverride(key,idx){ const o=loadOverrides(); delete o[key+':'+idx]; saveOverrides(o); }
 
 function getWorkoutCount(){ return parseInt(localStorage.getItem('gymlog_workout_count')||'0'); }
 function incrementWorkoutCount(){ localStorage.setItem('gymlog_workout_count', getWorkoutCount()+1); }
@@ -875,12 +1035,12 @@ function restoreWorkoutProgress(){
       document.getElementById('cycle-effort-text').style.color=cfg.color;
     }
     const startBtn=document.getElementById('start-workout-btn');
-    const endBtn=document.getElementById('end-workout-btn');
+    const leaveBtn=document.getElementById('leave-workout-btn');
     startBtn.style.background=color; startBtn.style.color='#000';
-    endBtn.style.background='#1a1a1a'; endBtn.style.color='#fff'; endBtn.style.border='1px solid #333';
+    leaveBtn.style.background='#141414'; leaveBtn.style.color='#777'; leaveBtn.style.border='1px solid #262626';
     workoutStarted = p.timerStarted || false;
     if(workoutStarted){
-      startBtn.style.display='none'; endBtn.style.display='block';
+      startBtn.style.display='none'; leaveBtn.style.display='block';
       clearInterval(elapsedInterval);
       document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
       elapsedInterval=setInterval(()=>{
@@ -889,7 +1049,7 @@ function restoreWorkoutProgress(){
         saveWorkoutProgress();
       },1000);
     } else {
-      startBtn.style.display='block'; endBtn.style.display='none';
+      startBtn.style.display='block'; leaveBtn.style.display='none';
       document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
     }
     renderExercises(isDeload);
@@ -1116,7 +1276,7 @@ function chestExtraSetsForExercise(key, exIdx, totalExtra, baseSets){
   if(pos===-1) return 0;
   const n=idxs.length;
   const raw=Math.floor(totalExtra/n)+(pos<(totalExtra%n)?1:0);
-  return Math.min(raw, Math.max(0, 4-(baseSets||0)));
+  return Math.min(raw, Math.max(0, CHEST_MAX_SETS-(baseSets||0)));
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -1177,8 +1337,11 @@ function startWorkout(key){
   } else {
     const totalChestExtra=CHEST_VOL_EX[key]?getChestExtraSets(key):0;
     setData=w.exercises.map((ex,i)=>{
-      const prev=prevLog?prevLog[i]:null;
-      const prevSets=prev?prev.sets:null;
+      // A permanent swap replaces the default exercise in this slot
+      const exName=getOverride(key,i)||ex.name;
+      // Prefer history for THIS exercise name; fall back to the slot's last log
+      const slotPrev=prevLog&&prevLog[i]&&prevLog[i].name===exName?prevLog[i].sets:null;
+      const prevSets=getExPrevSets(exName)||slotPrev;
       const suggestion=getExerciseSuggestion(prevSets, currentCycleWeek);
       const fillWeightKg=getSuggestedWeightKg(prevSets, currentCycleWeek, ex.weight);
       const fillReps=prevSets&&prevSets[0]?prevSets[0].reps:ex.reps;
@@ -1189,7 +1352,9 @@ function startWorkout(key){
         ?{text:`📈 CHEST VOL +${extraSets} SET${extraSets>1?'S':''} (${ex.sets+extraSets} total)`,color:'#FFC107'}
         :null;
       return {
-        name:ex.name,
+        name:exName,
+        slotIdx:i,
+        isSwapped:!!getOverride(key,i),
         overload:volNote||suggestion,
         prevSets,
         sets:Array.from({length:setCount},()=>({weight:fillWeight,reps:fillReps,done:false}))
@@ -1223,14 +1388,14 @@ function startWorkout(key){
 
   // Footer buttons
   const startBtn=document.getElementById('start-workout-btn');
-  const endBtn=document.getElementById('end-workout-btn');
+  const leaveBtn=document.getElementById('leave-workout-btn');
   startBtn.style.background=color;
   startBtn.style.color='#000';
   startBtn.style.display='block';
-  endBtn.style.background='#1a1a1a';
-  endBtn.style.color='#fff';
-  endBtn.style.border='1px solid #333';
-  endBtn.style.display='none';
+  leaveBtn.style.background='#141414';
+  leaveBtn.style.color='#777';
+  leaveBtn.style.border='1px solid #262626';
+  leaveBtn.style.display='none';
 
   // Timer does not start until user taps START WORKOUT
   clearInterval(elapsedInterval);
@@ -1248,6 +1413,21 @@ function renderExercises(deload){
   const list=document.getElementById('exercise-list');
   list.innerHTML='';
   const color=WORKOUTS[currentWorkout].color;
+
+  if(WORKOUTS[currentWorkout].type==='interval'){
+    const imp=document.createElement('div');
+    imp.className='ex-card';
+    imp.innerHTML=`
+      <div style="font-size:9px;font-weight:800;letter-spacing:3px;color:#555;margin-bottom:6px">GARMIN IMPORT</div>
+      <div style="font-size:12px;color:#555;line-height:1.5;margin-bottom:12px">
+        In Garmin Connect open the run → ⚙ → <b style="color:#888">Export to TCX</b> (or GPX), then load it here to fill your interval speeds automatically.
+      </div>
+      <button onclick="triggerGarminImport()"
+        style="width:100%;padding:13px;border-radius:12px;font-family:'Bebas Neue',cursive;font-size:17px;letter-spacing:2px;cursor:pointer;border:2px solid ${color}55;color:${color};background:${color}12">
+        ⬆ IMPORT GARMIN FILE
+      </button>`;
+    list.appendChild(imp);
+  }
 
   if(deload){
     const notice=document.createElement('div');
@@ -1349,9 +1529,16 @@ function renderExercises(deload){
 
     const swapBtn=isIntervalEx?'':`<button class="swap-btn" onclick="openLibrary(${exIdx})" style="color:${color};border-color:${color}55;background:${color}15">⇄ SWAP</button>`;
 
+    const swappedBadge=ex.isSwapped
+      ?`<div style="font-size:10px;font-weight:800;letter-spacing:2px;color:${color};margin-top:3px">
+          ⇄ SWAPPED · <span style="color:#555;text-decoration:underline;cursor:pointer" onclick="revertSlot(${exIdx})">REVERT</span>
+        </div>`
+      :'';
+
     card.innerHTML=`<div class="ex-header">
       <div class="ex-header-left">
         <div class="ex-name">${ex.name.toUpperCase()}</div>
+        ${swappedBadge}
         ${lastSessionHTML}
         ${overloadHTML}
       </div>
@@ -1360,6 +1547,95 @@ function renderExercises(deload){
 
     list.appendChild(card);
   });
+
+  // END WORKOUT lives at the bottom of the list — you reach it by finishing, not by accident
+  const endWrap=document.createElement('div');
+  endWrap.className='end-workout-wrap';
+  endWrap.innerHTML=`<button class="end-workout-inline" id="end-workout-btn" onclick="endWorkout()"
+      style="display:${workoutStarted?'block':'none'};border-color:${color}55;color:${color};background:${color}12">
+      ✓ END WORKOUT &amp; SAVE
+    </button>`;
+  list.appendChild(endWrap);
+}
+
+// ── Garmin activity import (TCX / GPX) ─────────────────────────────────────────
+// Garmin Connect has no browser-callable API (OAuth secret + CORS both block it from a
+// static page), so we import the activity file you export from the Garmin activity page.
+function triggerGarminImport(){ document.getElementById('garmin-file').click(); }
+
+function handleGarminFile(input){
+  const file=input.files&&input.files[0];
+  input.value='';
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onerror=()=>showToast('COULD NOT READ FILE','err');
+  reader.onload=()=>{
+    try{
+      const laps=parseActivityFile(reader.result, file.name);
+      if(!laps.length){ showToast('NO INTERVALS FOUND IN FILE','err'); return; }
+      applyGarminLaps(laps);
+    }catch(e){ showToast('COULD NOT PARSE FILE','err'); }
+  };
+  reader.readAsText(file);
+}
+
+function parseActivityFile(text, filename){
+  const doc=new DOMParser().parseFromString(text,'application/xml');
+  if(doc.querySelector('parsererror')) throw new Error('bad xml');
+
+  // TCX: each <Lap> already maps to an interval
+  const lapEls=[...doc.getElementsByTagName('Lap')];
+  if(lapEls.length){
+    return lapEls.map(lap=>{
+      const secs=parseFloat(txt(lap,'TotalTimeSeconds'))||0;
+      const dist=parseFloat(txt(lap,'DistanceMeters'))||0;
+      return {kmh:secs>0?(dist/secs)*3.6:0, secs, dist};
+    }).filter(l=>l.kmh>0);
+  }
+
+  // GPX fallback: derive speed from consecutive trackpoints, then split into 4 blocks
+  const pts=[...doc.getElementsByTagName('trkpt')].map(p=>({
+    lat:parseFloat(p.getAttribute('lat')),
+    lon:parseFloat(p.getAttribute('lon')),
+    t:new Date(txt(p,'time')).getTime()
+  })).filter(p=>!isNaN(p.lat)&&!isNaN(p.t));
+  if(pts.length<8) return [];
+
+  const block=Math.floor(pts.length/4);
+  const out=[];
+  for(let b=0;b<4;b++){
+    const seg=pts.slice(b*block,(b+1)*block);
+    let dist=0;
+    for(let i=1;i<seg.length;i++) dist+=haversine(seg[i-1],seg[i]);
+    const secs=(seg[seg.length-1].t-seg[0].t)/1000;
+    if(secs>0) out.push({kmh:(dist/secs)*3.6, secs, dist});
+  }
+  return out;
+}
+
+function txt(parent,tag){ const el=parent.getElementsByTagName(tag)[0]; return el?el.textContent.trim():''; }
+
+function haversine(a,b){
+  const R=6371000, toRad=d=>d*Math.PI/180;
+  const dLat=toRad(b.lat-a.lat), dLon=toRad(b.lon-a.lon);
+  const h=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+
+function applyGarminLaps(laps){
+  const need=setData[0].sets.length;
+  // A 4×4 file usually holds work AND recovery laps — the fastest N are the work intervals
+  const work=[...laps].sort((a,b)=>b.kmh-a.kmh).slice(0,need)
+                      .sort((a,b)=>laps.indexOf(a)-laps.indexOf(b));
+  work.forEach((lap,i)=>{
+    if(!setData[0].sets[i]) return;
+    setData[0].sets[i].weight=lap.kmh.toFixed(1);
+    setData[0].sets[i].done=true;
+  });
+  renderExercises(false);
+  updateStats();
+  if(workoutStarted) saveWorkoutProgress();
+  showToast(`IMPORTED ${work.length} INTERVALS ✓`,'ok');
 }
 
 // ── Mobility Tutorial Toggle ───────────────────────────────────────────────────
@@ -1430,6 +1706,7 @@ function saveWorkoutLog(){
     }))
   }));
   saveLog(currentWorkout, log);
+  recordExHist(log);
   if(STRENGTH_KEYS.has(currentWorkout)) incrementWorkoutCount();
   recordWorkoutToHistory(currentWorkout);
   clearWorkoutProgress();
@@ -1447,11 +1724,16 @@ function beginWorkout(){
     if(elapsedSeconds%30===0) saveWorkoutProgress();
   },1000);
   document.getElementById('start-workout-btn').style.display='none';
-  document.getElementById('end-workout-btn').style.display='block';
+  document.getElementById('leave-workout-btn').style.display='block';
+  const endBtn=document.getElementById('end-workout-btn');
+  if(endBtn) endBtn.style.display='block';
   saveWorkoutProgress();
 }
 
 function endWorkout(){
+  const total=setData.reduce((a,ex)=>a+ex.sets.length,0);
+  const done=setData.reduce((a,ex)=>a+ex.sets.filter(s=>s.done).length,0);
+  if(done<total && !confirm(`Only ${done} of ${total} sets are marked done. End and save this workout?`)) return;
   saveWorkoutLog();
   workoutStarted=false;
   clearInterval(elapsedInterval);
@@ -1607,14 +1889,100 @@ function renderLibrary(){
   `).join('');
 }
 
+let pendingSwapName=null;
+
 function selectExercise(name){
   if(swapExIdx===null) return;
-  setData[swapExIdx].name=name;
-  setData[swapExIdx].sets=setData[swapExIdx].sets.map(s=>({...s,done:false}));
-  setData[swapExIdx].overload=null;
+  pendingSwapName=name;
   closeLibrary();
+
+  const prevSets=getExPrevSets(name);
+  const prevDate=getExPrevDate(name);
+  document.getElementById('swap-modal-sub').textContent=
+    `${setData[swapExIdx].name} → ${name}`;
+
+  const box=document.getElementById('swap-prev-box');
+  if(prevSets&&prevSets.length){
+    const when=prevDate?new Date(prevDate).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'previously';
+    const rows=prevSets.map((s,i)=>
+      `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #141414">
+         <span style="color:#444;font-size:12px;letter-spacing:1px">SET ${i+1}</span>
+         <span style="color:#aaa;font-size:13px">${s.weight}kg × ${s.reps}</span>
+       </div>`).join('');
+    box.innerHTML=
+      `<div style="background:#0f0f0f;border:1px solid #1c1c1c;border-radius:14px;padding:14px 16px;margin-bottom:16px">
+         <div style="font-size:9px;font-weight:800;letter-spacing:3px;color:#00E5FF;margin-bottom:8px">LAST TIME · ${when}</div>
+         ${rows}
+       </div>`;
+  } else {
+    box.innerHTML=
+      `<div style="background:#0f0f0f;border:1px solid #1c1c1c;border-radius:14px;padding:14px 16px;margin-bottom:16px;color:#444;font-size:13px">
+         No previous log for this exercise — it will start fresh.
+       </div>`;
+  }
+  document.getElementById('swap-modal').classList.add('open');
+}
+
+function cancelSwap(){
+  pendingSwapName=null; swapExIdx=null;
+  document.getElementById('swap-modal').classList.remove('open');
+}
+
+function confirmSwap(permanent){
+  if(swapExIdx===null||!pendingSwapName) return cancelSwap();
+  const name=pendingSwapName, idx=swapExIdx;
+  const ex=setData[idx];
+  const prevSets=getExPrevSets(name);
+
+  ex.name=name;
+  ex.prevSets=prevSets;
+  ex.isSwapped=true;
+  ex.overload=getExerciseSuggestion(prevSets, currentCycleWeek);
+
+  // Prefill from that exercise's own history when we have it
+  if(prevSets&&prevSets[0]){
+    const kg=getSuggestedWeightKg(prevSets, currentCycleWeek, prevSets[0].weight);
+    const w=currentUnit==='lbs'?(kg*KG_TO_LBS).toFixed(1):kg.toFixed(1);
+    ex.sets=ex.sets.map((s,i)=>({
+      weight:w,
+      reps:prevSets[i]?prevSets[i].reps:prevSets[0].reps,
+      done:false
+    }));
+  } else {
+    ex.sets=ex.sets.map(s=>({...s,done:false}));
+  }
+
+  if(permanent&&ex.slotIdx!==undefined){
+    setOverride(currentWorkout, ex.slotIdx, name);
+    showToast('PERMANENT SWAP SAVED','ok');
+  } else {
+    showToast('SWAPPED FOR THIS SESSION','ok');
+  }
+
+  document.getElementById('swap-modal').classList.remove('open');
+  pendingSwapName=null; swapExIdx=null;
   renderExercises(currentCycleWeek>=8);
   updateStats();
+  if(workoutStarted) saveWorkoutProgress();
+}
+
+function revertSlot(idx){
+  const ex=setData[idx];
+  if(ex.slotIdx===undefined) return;
+  const def=WORKOUTS[currentWorkout].exercises[ex.slotIdx];
+  if(!def) return;
+  if(!confirm(`Revert this slot back to ${def.name}?`)) return;
+  clearOverride(currentWorkout, ex.slotIdx);
+  const prevSets=getExPrevSets(def.name);
+  ex.name=def.name;
+  ex.prevSets=prevSets;
+  ex.isSwapped=false;
+  ex.overload=getExerciseSuggestion(prevSets, currentCycleWeek);
+  ex.sets=ex.sets.map(s=>({...s,done:false}));
+  showToast('REVERTED TO DEFAULT','ok');
+  renderExercises(currentCycleWeek>=8);
+  updateStats();
+  if(workoutStarted) saveWorkoutProgress();
 }
 
 // ── Setup Modal (set last completed workout) ───────────────────────────────────
