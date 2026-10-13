@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -228,7 +231,7 @@ input[type=number]{-moz-appearance:textfield}
     <div class="workout-card" id="card-C" style="border-color:#A8FF3E22" onclick="startWorkout('C')">
       <div class="workout-card-letter" style="color:#A8FF3E">C</div>
       <div class="workout-card-title">BACK & SHOULDERS</div>
-      <div class="workout-card-sub" id="sub-C">6 EXERCISES</div>
+      <div class="workout-card-sub" id="sub-C">7 EXERCISES</div>
       <div class="workout-card-bar" style="background:#A8FF3E"></div>
     </div>
     <div class="workout-card" id="card-D" style="border-color:#FF2D7822" onclick="startWorkout('D')">
@@ -241,6 +244,7 @@ input[type=number]{-moz-appearance:textfield}
   <div class="weekly-section" id="weekly-section"></div>
   <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
   <button class="set-last-btn" onclick="resetCycle()" style="color:#FF2D78;margin-top:2px">RESET TO WEEK 1 (NEW CYCLE)</button>
+  <div style="text-align:center;margin-top:14px;font-size:9px;letter-spacing:2px;color:#2e2e2e;font-family:'Barlow Condensed',sans-serif">BUILD 2026-10-13 · v12</div>
 </div>
 
 <!-- SETUP MODAL -->
@@ -791,6 +795,7 @@ const WORKOUTS = {
       {name:'DB Shoulder Press',sets:3,reps:'10',weight:'20'},
       {name:'Chest Supported DB Lateral Raises',sets:3,reps:'12',weight:'10'},
       {name:'Reverse Pec Deck',sets:3,reps:'15',weight:'25'},
+      {name:'Cable Biceps Curl',sets:3,reps:'12',weight:'25'},
     ],
     mobility:[
       {name:'Kettlebell Snatch Primer',duration:'60 sec',
