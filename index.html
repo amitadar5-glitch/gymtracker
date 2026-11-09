@@ -245,14 +245,14 @@ input[type=number]{-moz-appearance:textfield}
     <div class="workout-card" id="card-E" style="grid-column:1/-1;border-color:#FFC10722" onclick="startWorkout('E')">
       <div class="workout-card-letter" style="color:#FFC107">E</div>
       <div class="workout-card-title">PULL · BACK &amp; HINGE</div>
-      <div class="workout-card-sub" id="sub-E">7 EXERCISES · 45 MIN</div>
+      <div class="workout-card-sub" id="sub-E">6 EXERCISES · 45 MIN</div>
       <div class="workout-card-bar" style="background:#FFC107"></div>
     </div>
   </div>
   <div class="weekly-section" id="weekly-section"></div>
   <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
   <button class="set-last-btn" onclick="resetCycle()" style="color:#FF2D78;margin-top:2px">RESET TO WEEK 1 (NEW CYCLE)</button>
-  <div style="text-align:center;margin-top:14px;font-size:9px;letter-spacing:2px;color:#2e2e2e;font-family:'Barlow Condensed',sans-serif">BUILD 2026-11-09 · v13 · 5-DAY CYCLE</div>
+  <div style="text-align:center;margin-top:14px;font-size:9px;letter-spacing:2px;color:#2e2e2e;font-family:'Barlow Condensed',sans-serif">BUILD 2026-11-09 · v14 · 5-DAY CYCLE</div>
 </div>
 
 <!-- SETUP MODAL -->
@@ -384,7 +384,7 @@ const TOTAL_CYCLE_WEEKS = 9;   // 8 training + 1 deload
 const SEQUENCE = ['A','B','C','D','E'];
 const STRENGTH_KEYS = new Set(['A','B','C','D','E']); // count toward progressive overload cycle
 // Chest volume progression: key → indices of chest exercises that share extra sets
-const CHEST_VOL_EX = {A:[1,2,3], D:[1,2,3]};
+const CHEST_VOL_EX = {A:[1,2,3], D:[0,1,2]};
 const CHEST_MAX_SETS = 3; // hard cap: never more than 3 sets on any chest exercise
 
 // Week-by-week RIR (Reps In Reserve) targets — index 0 = Week 1, index 8 = Deload
@@ -673,7 +673,6 @@ const EXERCISE_LIBRARY = [
   {name:'Ski Erg',muscle:'Full Body'},
   {name:'Jump Rope',muscle:'Full Body'},
   {name:'Kettlebell Clean & Jerk',muscle:'Full Body'},
-  {name:'Medicine Ball Chest Pass',muscle:'Full Body'},
   {name:'Burpee',muscle:'Full Body'},
   // ── ATHLETIC / POWER / MOVEMENT PATTERNS ──
   {name:'Landmine Clean & Jerk',muscle:'Full Body'},
@@ -745,10 +744,10 @@ const WORKOUTS = {
       {name:'Landmine Clean & Jerk',sets:3,reps:'3',weight:'30',rest:90},
       {name:'Incline DB Bench Press',sets:3,reps:'7',weight:'34',rest:120},
       {name:'Uni-Lateral Machine Chest Press',sets:2,reps:'8',weight:'50',rest:90},
-      {name:'Low to High Cable Flys (Upper Chest)',sets:3,reps:'10',weight:'20',rest:30,pair:'Overhead Triceps Extension'},
-      {name:'Cable Overhead Tricep Extension',sets:3,reps:'10',weight:'25',rest:75,pair:'Low-to-High Fly'},
-      {name:'Cross Cable Pushdown (Triceps)',sets:3,reps:'12',weight:'15',rest:30,pair:'Cable Woodchop'},
-      {name:'Cable Woodchop',sets:3,reps:'10',weight:'15',rest:60,pair:'Cross Cable Pushdown'},
+      {name:'Low to High Cable Flys (Upper Chest)',sets:3,reps:'10',weight:'20',rest:60},
+      {name:'Cable Overhead Tricep Extension',sets:3,reps:'10',weight:'25',rest:60},
+      {name:'Cross Cable Pushdown (Triceps)',sets:3,reps:'12',weight:'15',rest:60},
+      {name:'Cable Woodchop',sets:3,reps:'10',weight:'15',rest:60},
     ],
     mobility:[
       {name:'Thoracic Spine Rotation (Seated)',duration:'45 sec each side',
@@ -774,8 +773,8 @@ const WORKOUTS = {
       {name:'Wide Grip Lat Pulldown',sets:3,reps:'9',weight:'70',rest:90},
       {name:'Barbell Bent-Over Row',sets:3,reps:'8',weight:'50',rest:120,tip:'Overhand grip only — underhand rowing loads the biceps. Straps are fine.'},
       {name:'Chest Supported Row',sets:3,reps:'10',weight:'32',rest:90},
-      {name:'Incline DB Curl',sets:3,reps:'10',weight:'14',rest:30,pair:'Reverse Pec Deck',tip:'Lower over 3 sec. Pain up to 3/10 is OK if it settles by next morning.'},
-      {name:'Reverse Pec Deck',sets:3,reps:'15',weight:'25',rest:60,pair:'Incline DB Curl'},
+      {name:'Reverse Pec Deck',sets:3,reps:'15',weight:'25',rest:60},
+      {name:'Incline DB Curl',sets:3,reps:'10',weight:'14',rest:60,tip:'Lower over 3 sec. Pain up to 3/10 is OK if it settles by next morning.'},
       {name:'Spider Curl',sets:3,reps:'12',weight:'10',rest:60},
     ],
     mobility:[
@@ -800,11 +799,11 @@ const WORKOUTS = {
     exercises:[
       {name:'Box Jump',sets:3,reps:'5',weight:'0',rest:60},
       {name:'Back Squat',sets:3,reps:'6',weight:'60',rest:180,tip:'Full 3:00 rest between sets — the timer is set for you.'},
-      {name:'DB Shoulder Press',sets:3,reps:'10',weight:'20',rest:30,pair:'Calf Raises'},
-      {name:'Calf Raises',sets:3,reps:'15',weight:'40',rest:90,pair:'DB Shoulder Press',tip:'Full stretch at the bottom, 1-sec pause at the top.'},
-      {name:'Leg Extension (Quad)',sets:3,reps:'12',weight:'79',rest:30,pair:'Chest Supported DB Lateral'},
-      {name:'Chest Supported DB Lateral Raises',sets:3,reps:'15',weight:'10',rest:60,pair:'Leg Extension'},
+      {name:'Leg Extension (Quad)',sets:3,reps:'12',weight:'79',rest:60},
+      {name:'DB Shoulder Press',sets:3,reps:'10',weight:'20',rest:90},
+      {name:'Chest Supported DB Lateral Raises',sets:3,reps:'15',weight:'10',rest:60},
       {name:'Lean-Away Cable Lateral Raise',sets:3,reps:'15',weight:'7.5',rest:60},
+      {name:'Calf Raises',sets:3,reps:'15',weight:'40',rest:60,tip:'Full stretch at the bottom, 1-sec pause at the top.'},
     ],
     mobility:[
       {name:'Lunge with Thoracic Rotation',duration:'45 sec each side',
@@ -826,13 +825,13 @@ const WORKOUTS = {
   },
   D:{label:'D',title:'PUSH · CHEST & DELTS',color:'#FF2D78',
     exercises:[
-      {name:'Medicine Ball Chest Pass',sets:3,reps:'5',weight:'6',rest:60,tip:'Explode from the chest into a wall. Catch, reset, repeat.'},
       {name:'Machine Chest Press',sets:3,reps:'9',weight:'57',rest:120},
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60',rest:120},
-      {name:'Machine Pec Deck Flys',sets:3,reps:'10',weight:'57',rest:30,pair:'Cable Lateral Raises'},
-      {name:'Cable Lateral Raises',sets:3,reps:'15',weight:'10.5',rest:60,pair:'Pec Deck'},
-      {name:'Overhead Cable Tricep Extension (Single Arm)',sets:3,reps:'12',weight:'12.5',rest:30,pair:'Seated Calf Raises'},
-      {name:'Seated Calf Raises',sets:3,reps:'15',weight:'30',rest:60,pair:'Single-Arm Overhead Extension'},
+      {name:'Machine Pec Deck Flys',sets:3,reps:'10',weight:'57',rest:60},
+      {name:'Cable Lateral Raises',sets:3,reps:'15',weight:'10.5',rest:60},
+      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'15',weight:'17.5',rest:60},
+      {name:'Overhead Cable Tricep Extension (Single Arm)',sets:3,reps:'12',weight:'12.5',rest:60},
+      {name:'Seated Calf Raises',sets:3,reps:'15',weight:'30',rest:60},
     ],
     mobility:[
       {name:'Thread the Needle',duration:'45 sec each side',
@@ -854,10 +853,9 @@ const WORKOUTS = {
       {name:'Hang Power Clean',sets:3,reps:'3',weight:'50',rest:90,tip:'Arms long — no early elbow bend. Straps are fine.'},
       {name:'Deadlift',sets:3,reps:'5',weight:'100',rest:150,tip:'Double-overhand with straps. No mixed grip — it loads the biceps.'},
       {name:'T-Bar Row',sets:3,reps:'9',weight:'40',rest:120},
-      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'12',weight:'37.5',rest:30,pair:'Cable Biceps Curl'},
-      {name:'Cable Biceps Curl',sets:3,reps:'12',weight:'25',rest:60,pair:'Seated Hamstring Curl',tip:'Lower over 3 sec. Pain up to 3/10 is OK if it settles by next morning.'},
-      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'15',weight:'17.5',rest:30,pair:'Concentration Curl'},
-      {name:'Concentration Curl',sets:3,reps:'10',weight:'12',rest:60,pair:'Rear Delt Fly'},
+      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'12',weight:'37.5',rest:60},
+      {name:'Cable Biceps Curl',sets:3,reps:'12',weight:'25',rest:60,tip:'Lower over 3 sec. Pain up to 3/10 is OK if it settles by next morning.'},
+      {name:'Concentration Curl',sets:3,reps:'10',weight:'12',rest:60},
     ],
     mobility:[
       {name:"World's Greatest Stretch",duration:'3 per side',
@@ -2089,6 +2087,10 @@ function resetCycle(){
     localStorage.setItem(FLAG,'1');
   }catch(e){}
 })();
+
+// v14 moved exercise positions (no supersets, no chest pass), so slot-based swaps are stale
+(function(){ try{ if(localStorage.getItem('gymlog_layout_v14')) return;
+  localStorage.removeItem('gymlog_overrides'); localStorage.setItem('gymlog_layout_v14','1'); }catch(e){} })();
 
 // ── Page Load Bootstrap ────────────────────────────────────────────────────────
 initChestVolume();
