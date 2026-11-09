@@ -221,25 +221,25 @@ input[type=number]{-moz-appearance:textfield}
     <div class="workout-card" id="card-A" style="border-color:#00E5FF22" onclick="startWorkout('A')">
       <div class="workout-card-letter" style="color:#00E5FF">A</div>
       <div class="workout-card-title">PUSH · CHEST &amp; TRICEPS</div>
-      <div class="workout-card-sub" id="sub-A">7 EXERCISES · 45 MIN</div>
+      <div class="workout-card-sub" id="sub-A">6 EXERCISES · 45 MIN</div>
       <div class="workout-card-bar" style="background:#00E5FF"></div>
     </div>
     <div class="workout-card" id="card-B" style="border-color:#FF6B3522" onclick="startWorkout('B')">
       <div class="workout-card-letter" style="color:#FF6B35">B</div>
       <div class="workout-card-title">PULL · BACK &amp; BICEPS</div>
-      <div class="workout-card-sub" id="sub-B">7 EXERCISES · 45 MIN</div>
+      <div class="workout-card-sub" id="sub-B">6 EXERCISES · 45 MIN</div>
       <div class="workout-card-bar" style="background:#FF6B35"></div>
     </div>
     <div class="workout-card" id="card-C" style="border-color:#A8FF3E22" onclick="startWorkout('C')">
       <div class="workout-card-letter" style="color:#A8FF3E">C</div>
       <div class="workout-card-title">LEGS &amp; DELTS</div>
-      <div class="workout-card-sub" id="sub-C">7 EXERCISES · 45 MIN</div>
+      <div class="workout-card-sub" id="sub-C">6 EXERCISES · 45 MIN</div>
       <div class="workout-card-bar" style="background:#A8FF3E"></div>
     </div>
     <div class="workout-card" id="card-D" style="border-color:#FF2D7822" onclick="startWorkout('D')">
       <div class="workout-card-letter" style="color:#FF2D78">D</div>
       <div class="workout-card-title">PUSH · CHEST &amp; DELTS</div>
-      <div class="workout-card-sub" id="sub-D">7 EXERCISES · 45 MIN</div>
+      <div class="workout-card-sub" id="sub-D">6 EXERCISES · 45 MIN</div>
       <div class="workout-card-bar" style="background:#FF2D78"></div>
     </div>
     <div class="workout-card" id="card-E" style="grid-column:1/-1;border-color:#FFC10722" onclick="startWorkout('E')">
@@ -252,7 +252,7 @@ input[type=number]{-moz-appearance:textfield}
   <div class="weekly-section" id="weekly-section"></div>
   <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
   <button class="set-last-btn" onclick="resetCycle()" style="color:#FF2D78;margin-top:2px">RESET TO WEEK 1 (NEW CYCLE)</button>
-  <div style="text-align:center;margin-top:14px;font-size:9px;letter-spacing:2px;color:#2e2e2e;font-family:'Barlow Condensed',sans-serif">BUILD 2026-11-09 · v15 · 5-DAY CYCLE</div>
+  <div style="text-align:center;margin-top:14px;font-size:9px;letter-spacing:2px;color:#2e2e2e;font-family:'Barlow Condensed',sans-serif">BUILD 2026-11-09 · v16 · 5-DAY CYCLE</div>
 </div>
 
 <!-- SETUP MODAL -->
@@ -741,12 +741,11 @@ const MUSCLE_GROUPS = ['All','Chest','Back','Shoulders','Biceps','Triceps','Legs
 const WORKOUTS = {
   A:{label:'A',title:'PUSH · CHEST & TRICEPS',color:'#00E5FF',
     exercises:[
-      {name:'Landmine Clean & Jerk',sets:3,reps:'3',weight:'30',rest:90},
+      {name:'Landmine Clean & Jerk',sets:3,reps:'3',weight:'30',rest:60},
       {name:'Incline DB Bench Press',sets:3,reps:'7',weight:'34',rest:120},
-      {name:'Uni-Lateral Machine Chest Press',sets:2,reps:'8',weight:'50',rest:90},
-      {name:'Low to High Cable Flys (Upper Chest)',sets:3,reps:'10',weight:'20',rest:60},
-      {name:'Cable Overhead Tricep Extension',sets:3,reps:'10',weight:'25',rest:60},
-      {name:'Cross Cable Pushdown (Triceps)',sets:3,reps:'12',weight:'15',rest:60},
+      {name:'Uni-Lateral Machine Chest Press',sets:2,reps:'8',weight:'50',rest:120},
+      {name:'Low to High Cable Flys (Upper Chest)',sets:3,reps:'10',weight:'20',rest:120},
+      {name:'Cable Overhead Tricep Extension',sets:3,reps:'10',weight:'25',rest:120},
       {name:'Cable Woodchop',sets:3,reps:'10',weight:'15',rest:60},
     ],
     mobility:[
@@ -769,13 +768,12 @@ const WORKOUTS = {
   },
   B:{label:'B',title:'PULL · BACK & BICEPS',color:'#FF6B35',
     exercises:[
-      {name:'Kettlebell Snatch',sets:3,reps:'5',weight:'20',rest:90,tip:'Punch through softly at the top. Swap to KB swings if the forearm flares.'},
-      {name:'Wide Grip Lat Pulldown',sets:3,reps:'9',weight:'70',rest:90},
+      {name:'Kettlebell Snatch',sets:3,reps:'5',weight:'20',rest:60,tip:'Punch through softly at the top. Swap to KB swings if the forearm flares.'},
+      {name:'Wide Grip Lat Pulldown',sets:3,reps:'9',weight:'70',rest:120},
       {name:'Barbell Bent-Over Row',sets:3,reps:'8',weight:'50',rest:120,tip:'Overhand grip only — underhand rowing loads the biceps. Straps are fine.'},
-      {name:'Chest Supported Row',sets:3,reps:'10',weight:'32',rest:90},
-      {name:'Reverse Pec Deck',sets:3,reps:'15',weight:'25',rest:60},
-      {name:'Incline DB Curl',sets:3,reps:'10',weight:'14',rest:60,tip:'Lower over 3 sec. Pain up to 3/10 is OK if it settles by next morning.'},
-      {name:'Spider Curl',sets:3,reps:'12',weight:'10',rest:60},
+      {name:'Chest Supported Row',sets:3,reps:'10',weight:'32',rest:120},
+      {name:'Incline DB Curl',sets:3,reps:'10',weight:'14',rest:120,tip:'Lower over 3 sec. Pain up to 3/10 is OK if it settles by next morning.'},
+      {name:'Spider Curl',sets:3,reps:'12',weight:'10',rest:120},
     ],
     mobility:[
       {name:'Open Book Thoracic Rotation',duration:'45 sec each side',
@@ -796,11 +794,10 @@ const WORKOUTS = {
     exercises:[
       {name:'Box Jump',sets:3,reps:'5',weight:'0',rest:60},
       {name:'Back Squat',sets:3,reps:'6',weight:'60',rest:180,tip:'Full 3:00 rest between sets — the timer is set for you.'},
-      {name:'Leg Extension (Quad)',sets:3,reps:'12',weight:'79',rest:60},
-      {name:'DB Shoulder Press',sets:3,reps:'10',weight:'20',rest:90},
-      {name:'Chest Supported DB Lateral Raises',sets:3,reps:'15',weight:'10',rest:60},
-      {name:'Lean-Away Cable Lateral Raise',sets:3,reps:'15',weight:'7.5',rest:60},
-      {name:'Calf Raises',sets:3,reps:'15',weight:'40',rest:60,tip:'Full stretch at the bottom, 1-sec pause at the top.'},
+      {name:'Leg Extension (Quad)',sets:3,reps:'12',weight:'79',rest:120},
+      {name:'DB Shoulder Press',sets:2,reps:'10',weight:'20',rest:120},
+      {name:'Chest Supported DB Lateral Raises',sets:3,reps:'15',weight:'10',rest:120},
+      {name:'Calf Raises',sets:2,reps:'15',weight:'40',rest:120,tip:'Full stretch at the bottom, 1-sec pause at the top.'},
     ],
     mobility:[
       {name:'Lunge with Thoracic Rotation',duration:'45 sec each side',
@@ -824,11 +821,10 @@ const WORKOUTS = {
     exercises:[
       {name:'Machine Chest Press',sets:3,reps:'9',weight:'57',rest:120},
       {name:'Incline Smith Machine Bench Press',sets:3,reps:'8',weight:'60',rest:120},
-      {name:'Machine Pec Deck Flys',sets:3,reps:'10',weight:'57',rest:60},
-      {name:'Cable Lateral Raises',sets:3,reps:'15',weight:'10.5',rest:60},
-      {name:'Standing Cable Rear Delt Fly',sets:3,reps:'15',weight:'17.5',rest:60},
-      {name:'Overhead Cable Tricep Extension (Single Arm)',sets:3,reps:'12',weight:'12.5',rest:60},
-      {name:'Seated Calf Raises',sets:3,reps:'15',weight:'30',rest:60},
+      {name:'Machine Pec Deck Flys',sets:3,reps:'10',weight:'57',rest:120},
+      {name:'Cable Lateral Raises',sets:3,reps:'15',weight:'10.5',rest:120},
+      {name:'Standing Cable Rear Delt Fly',sets:2,reps:'15',weight:'17.5',rest:120},
+      {name:'Overhead Cable Tricep Extension (Single Arm)',sets:2,reps:'12',weight:'12.5',rest:120},
     ],
     mobility:[
       {name:'Thread the Needle',duration:'45 sec each side',
@@ -847,12 +843,12 @@ const WORKOUTS = {
   },
   E:{label:'E',title:'PULL · BACK & HINGE',color:'#FFC107',
     exercises:[
-      {name:'Hang Power Clean',sets:3,reps:'3',weight:'50',rest:90,tip:'Arms long — no early elbow bend. Straps are fine.'},
-      {name:'Deadlift',sets:3,reps:'5',weight:'100',rest:150,tip:'Double-overhand with straps. No mixed grip — it loads the biceps.'},
+      {name:'Hang Power Clean',sets:3,reps:'3',weight:'50',rest:60,tip:'Arms long — no early elbow bend. Straps are fine.'},
+      {name:'Deadlift',sets:3,reps:'5',weight:'100',rest:120,tip:'Double-overhand with straps. No mixed grip — it loads the biceps.'},
       {name:'T-Bar Row',sets:3,reps:'9',weight:'40',rest:120},
-      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'12',weight:'37.5',rest:60},
-      {name:'Cable Biceps Curl',sets:3,reps:'12',weight:'25',rest:60,tip:'Lower over 3 sec. Pain up to 3/10 is OK if it settles by next morning.'},
-      {name:'Concentration Curl',sets:3,reps:'10',weight:'12',rest:60},
+      {name:'Seated Leg (Hamstring) Curl',sets:3,reps:'12',weight:'37.5',rest:120},
+      {name:'Cable Biceps Curl',sets:3,reps:'12',weight:'25',rest:120,tip:'Lower over 3 sec. Pain up to 3/10 is OK if it settles by next morning.'},
+      {name:'Concentration Curl',sets:2,reps:'10',weight:'12',rest:120},
     ],
     mobility:[
       {name:"World's Greatest Stretch",duration:'3 per side',
@@ -2082,9 +2078,9 @@ function resetCycle(){
   }catch(e){}
 })();
 
-// v14 moved exercise positions (no supersets, no chest pass), so slot-based swaps are stale
-(function(){ try{ if(localStorage.getItem('gymlog_layout_v14')) return;
-  localStorage.removeItem('gymlog_overrides'); localStorage.setItem('gymlog_layout_v14','1'); }catch(e){} })();
+// v16 moved exercise positions (2-min rests, 6 exercises a day), so slot-based swaps are stale
+(function(){ try{ if(localStorage.getItem('gymlog_layout_v16')) return;
+  localStorage.removeItem('gymlog_overrides'); localStorage.setItem('gymlog_layout_v16','1'); }catch(e){} })();
 
 // ── Page Load Bootstrap ────────────────────────────────────────────────────────
 initChestVolume();
