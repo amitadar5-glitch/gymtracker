@@ -29,6 +29,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',
 .workout-card-letter{font-family:'Bebas Neue',cursive;font-size:76px;line-height:1;margin-bottom:8px}
 .workout-card-title{color:#fff;font-size:11px;font-weight:700;letter-spacing:1px}
 .workout-card-sub{color:var(--muted);font-size:11px;margin-top:3px;letter-spacing:1px}
+.workout-card-last{font-size:10px;font-weight:700;letter-spacing:1.5px;margin-top:5px;min-height:12px}
 .workout-card-bar{position:absolute;bottom:0;left:0;right:0;height:3px;opacity:0.6}
 .deload-badge{position:absolute;top:12px;right:12px;background:#FFD700;color:#000;font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 7px;border-radius:20px}
 
@@ -163,7 +164,8 @@ input[type=number]{-moz-appearance:textfield}
 .weekly-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .weekly-label{font-size:9px;font-weight:800;letter-spacing:3px;color:#444}
 .weekly-dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.weekly-dot{font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:1px;padding:5px 9px;border-radius:9px;border:1px solid}
+.weekly-dot{font-family:'Bebas Neue',cursive;font-size:13px;letter-spacing:1px;padding:5px 9px;border-radius:9px;border:1px solid;text-align:center}
+.weekly-dot-time{display:block;font-size:10px;letter-spacing:0.5px;line-height:1;margin-top:1px}
 .next-up-row{display:flex;align-items:center;justify-content:space-between}
 .next-up-badge{font-family:'Bebas Neue',cursive;font-size:14px;letter-spacing:1.5px;padding:7px 16px;border-radius:10px;border:1px solid}
 
@@ -222,37 +224,42 @@ input[type=number]{-moz-appearance:textfield}
       <div class="workout-card-letter" style="color:#00E5FF">A</div>
       <div class="workout-card-title">PUSH · CHEST &amp; TRICEPS</div>
       <div class="workout-card-sub" id="sub-A">6 EXERCISES · 45 MIN</div>
+      <div class="workout-card-last" id="last-A"></div>
       <div class="workout-card-bar" style="background:#00E5FF"></div>
     </div>
     <div class="workout-card" id="card-B" style="border-color:#FF6B3522" onclick="startWorkout('B')">
       <div class="workout-card-letter" style="color:#FF6B35">B</div>
       <div class="workout-card-title">PULL · BACK &amp; BICEPS</div>
       <div class="workout-card-sub" id="sub-B">6 EXERCISES · 45 MIN</div>
+      <div class="workout-card-last" id="last-B"></div>
       <div class="workout-card-bar" style="background:#FF6B35"></div>
     </div>
     <div class="workout-card" id="card-C" style="border-color:#A8FF3E22" onclick="startWorkout('C')">
       <div class="workout-card-letter" style="color:#A8FF3E">C</div>
       <div class="workout-card-title">LEGS &amp; DELTS</div>
       <div class="workout-card-sub" id="sub-C">6 EXERCISES · 45 MIN</div>
+      <div class="workout-card-last" id="last-C"></div>
       <div class="workout-card-bar" style="background:#A8FF3E"></div>
     </div>
     <div class="workout-card" id="card-D" style="border-color:#FF2D7822" onclick="startWorkout('D')">
       <div class="workout-card-letter" style="color:#FF2D78">D</div>
       <div class="workout-card-title">PUSH · CHEST &amp; DELTS</div>
       <div class="workout-card-sub" id="sub-D">6 EXERCISES · 45 MIN</div>
+      <div class="workout-card-last" id="last-D"></div>
       <div class="workout-card-bar" style="background:#FF2D78"></div>
     </div>
     <div class="workout-card" id="card-E" style="grid-column:1/-1;border-color:#FFC10722" onclick="startWorkout('E')">
       <div class="workout-card-letter" style="color:#FFC107">E</div>
       <div class="workout-card-title">PULL · BACK &amp; HINGE</div>
       <div class="workout-card-sub" id="sub-E">6 EXERCISES · 45 MIN</div>
+      <div class="workout-card-last" id="last-E"></div>
       <div class="workout-card-bar" style="background:#FFC107"></div>
     </div>
   </div>
   <div class="weekly-section" id="weekly-section"></div>
   <button class="set-last-btn" onclick="openSetupModal()">SET LAST COMPLETED WORKOUT</button>
   <button class="set-last-btn" onclick="resetCycle()" style="color:#FF2D78;margin-top:2px">RESET TO WEEK 1 (NEW CYCLE)</button>
-  <div style="text-align:center;margin-top:14px;font-size:9px;letter-spacing:2px;color:#2e2e2e;font-family:'Barlow Condensed',sans-serif">BUILD 2026-11-09 · v16 · 5-DAY CYCLE</div>
+  <div style="text-align:center;margin-top:14px;font-size:9px;letter-spacing:2px;color:#2e2e2e;font-family:'Barlow Condensed',sans-serif">BUILD 2026-11-09 · v17 · 5-DAY CYCLE</div>
 </div>
 
 <!-- SETUP MODAL -->
@@ -869,6 +876,7 @@ const WORKOUTS = {
 
 // ── State ──────────────────────────────────────────────────────────────────────
 let currentWorkout=null, elapsedInterval=null, elapsedSeconds=0;
+let workoutStartedAt=null; // ms timestamp of START WORKOUT — the clock is measured from this
 let setData=[], currentUnit='kg', swapExIdx=null, libraryFilter='All';
 let currentCycleWeek=0; // 0-7 = training weeks, 8 = deload
 let workoutStarted=false; // true only after START WORKOUT is tapped
@@ -954,11 +962,17 @@ function incrementWorkoutCount(){ localStorage.setItem('gymlog_workout_count', g
 // ── Workout History (for weekly tracker) ──────────────────────────────────────
 function loadHistory(){ try{ const d=localStorage.getItem('gymlog_history'); return d?JSON.parse(d):[]; }catch(e){return [];} }
 function saveHistory(h){ try{ localStorage.setItem('gymlog_history',JSON.stringify(h)); }catch(e){} }
-function recordWorkoutToHistory(key){
+function recordWorkoutToHistory(key, extra){
   const h=loadHistory();
-  h.push({key, date:new Date().toISOString()});
-  if(h.length>28) h.splice(0,h.length-28); // keep ~7 weeks
+  h.push({key, date:new Date().toISOString(), ...(extra||{})});
+  if(h.length>40) h.splice(0,h.length-40); // keep ~8 weeks
   saveHistory(h);
+}
+// Most recent timed session for a workout key (older entries have no duration)
+function lastTimedSession(key){
+  const h=loadHistory();
+  for(let i=h.length-1;i>=0;i--) if(h[i].key===key && h[i].duration) return h[i];
+  return null;
 }
 // Only workouts logged since the current cycle began count toward THIS WEEK / NEXT UP
 function cycleHistory(){
@@ -999,6 +1013,7 @@ function saveWorkoutProgress(){
       key: currentWorkout,
       setData: JSON.parse(JSON.stringify(setData)),
       elapsed: elapsedSeconds,
+      startedAt: workoutStartedAt,
       unit: currentUnit,
       cycleWeek: currentCycleWeek,
       timerStarted: workoutStarted,
@@ -1083,13 +1098,11 @@ function restoreWorkoutProgress(){
     workoutStarted = p.timerStarted || false;
     if(workoutStarted){
       startBtn.style.display='none'; leaveBtn.style.display='block';
-      clearInterval(elapsedInterval);
-      document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
-      elapsedInterval=setInterval(()=>{
-        elapsedSeconds++;
-        document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
-        saveWorkoutProgress();
-      },1000);
+      // Keep the real clock running across a short close; if the app was closed
+      // for 30+ min, treat that gap as a pause and resume from the saved time.
+      const gap=Date.now()-(p.savedAt||Date.now());
+      workoutStartedAt=(p.startedAt&&gap<30*60*1000)?p.startedAt:Date.now()-(p.elapsed||0)*1000;
+      startElapsedTicker();
     } else {
       startBtn.style.display='block'; leaveBtn.style.display='none';
       document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
@@ -1760,21 +1773,33 @@ function saveWorkoutLog(){
   saveLog(currentWorkout, log);
   recordExHist(log);
   if(STRENGTH_KEYS.has(currentWorkout)) incrementWorkoutCount();
-  recordWorkoutToHistory(currentWorkout);
+  const duration=workoutStartedAt?Math.round((Date.now()-workoutStartedAt)/1000):0;
+  recordWorkoutToHistory(currentWorkout, workoutStartedAt
+    ?{start:new Date(workoutStartedAt).toISOString(), duration}:{});
   clearWorkoutProgress();
+  return duration;
 }
 
 // ── Workout Start / End ────────────────────────────────────────────────────────
+// The workout clock reads real time since START WORKOUT instead of counting ticks:
+// phones pause timers while the screen is locked, which made a tick counter undercount.
+function startElapsedTicker(){
+  clearInterval(elapsedInterval);
+  const tick=()=>{
+    elapsedSeconds=Math.max(0,Math.floor((Date.now()-workoutStartedAt)/1000));
+    const el=document.getElementById('elapsed-display');
+    el.textContent=fmt(elapsedSeconds);
+    el.style.color=elapsedSeconds>45*60?'#FF6B35':''; // past the 45-min target
+    if(elapsedSeconds%30===0) saveWorkoutProgress();   // tab-kill never loses >30s
+  };
+  tick();
+  elapsedInterval=setInterval(tick,1000);
+}
+
 function beginWorkout(){
   workoutStarted=true;
-  clearInterval(elapsedInterval);
-  elapsedSeconds=0;
-  elapsedInterval=setInterval(()=>{
-    elapsedSeconds++;
-    document.getElementById('elapsed-display').textContent=fmt(elapsedSeconds);
-    // Save every 30 seconds so tab-kill never loses more than 30s of state
-    if(elapsedSeconds%30===0) saveWorkoutProgress();
-  },1000);
+  workoutStartedAt=Date.now();
+  startElapsedTicker();
   document.getElementById('start-workout-btn').style.display='none';
   document.getElementById('leave-workout-btn').style.display='block';
   const endBtn=document.getElementById('end-workout-btn');
@@ -1786,12 +1811,15 @@ function endWorkout(){
   const total=setData.reduce((a,ex)=>a+ex.sets.length,0);
   const done=setData.reduce((a,ex)=>a+ex.sets.filter(s=>s.done).length,0);
   if(done<total && !confirm(`Only ${done} of ${total} sets are marked done. End and save this workout?`)) return;
-  saveWorkoutLog();
+  const key=currentWorkout;
+  const duration=saveWorkoutLog();
   workoutStarted=false;
+  workoutStartedAt=null;
   clearInterval(elapsedInterval);
   skipRest();
   renderWeeklyTracker();
   showScreen('home');
+  if(duration) showToast(`WORKOUT ${key} DONE IN ${fmt(duration)}`, duration<=45*60?'ok':'err');
 }
 
 // ── Unit Toggle ────────────────────────────────────────────────────────────────
@@ -1873,16 +1901,30 @@ function renderWeeklyTracker(){
   const el=document.getElementById('weekly-section');
   if(!el) return;
   const nextKey=getNextWorkoutKey();
-  const done=getThisWeekDone();
+  const cutoff=new Date(Date.now()-7*24*60*60*1000).toISOString();
+  const week=cycleHistory().filter(h=>h.date>=cutoff);
   const keys=SEQUENCE;
 
   const dotsHTML=keys.map(k=>{
-    const isDone=done.includes(k);
+    const entry=[...week].reverse().find(h=>h.key===k);
+    const isDone=!!entry;
     const c=WORKOUTS[k].color;
+    const mins=entry&&entry.duration?`<span class="weekly-dot-time">${Math.round(entry.duration/60)} MIN</span>`:'';
     return `<div class="weekly-dot" style="${isDone
       ?'background:'+c+';border-color:'+c+';color:#000'
-      :'border-color:'+c+'44;color:'+c+'55'}">${isDone?'✓ ':''}${k}</div>`;
+      :'border-color:'+c+'44;color:'+c+'55'}">${isDone?'✓ ':''}${k}${mins}</div>`;
   }).join('');
+
+  // Each card shows how long that workout took last time (red past the 45-min target)
+  keys.forEach(k=>{
+    const el=document.getElementById('last-'+k);
+    if(!el) return;
+    const last=lastTimedSession(k);
+    if(!last){ el.textContent=''; return; }
+    const over=last.duration>45*60;
+    el.textContent=`LAST · ${fmt(last.duration)}${over?' · OVER 45':''}`;
+    el.style.color=over?'#FF6B35':'#8a8a8a';
+  });
 
   el.innerHTML=`
     <div class="weekly-row">
